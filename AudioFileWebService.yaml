@@ -1,0 +1,572 @@
+openapi: 3.0.0
+info:
+  title: AudioFileWebService
+  description: The file should include all elements that are necessary for the project, including Endpoint(s), HTTP commands, queries, requests and responses, including schemas and examples. indicate security when appropriate.
+  version: '0.0.3'
+
+servers: 
+ - url: https://cs3103.cs.unb.ca/tshutty/project_api
+
+tags:
+  - name: admins
+    description: Secured Admin-only calls. Admins also have access to logged in user and logged out user calls.
+  - name: logged in users
+    description: Operations available to logged in users. Logged in users also have access to logged out user calls.
+  - name: logged out users
+    description: Operations available to users not logged in
+    
+#password creation, management, and authentication will be handled by UNB's server
+#email is the user ID. If a path has {email} in it, then only that means each user can only access the resources associated with them, not other users. Except admins, which can use all {email} path possibilities.
+
+paths:
+  /users:
+    post:
+      tags:
+        - logged out users
+      summary: Creates a user and root folder. Only first user is automatically given admin status.
+      requestBody:
+        required: true 
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/email'
+      responses:
+        '201':
+          description: Created
+        '409':
+          description: User email already in use
+        '400':
+          description: Invalid email
+    get:
+      tags:
+        - admins
+      summary: Returns a list of user emails. Does not include admins.
+      responses:
+        '200':
+          description: A JSON array of emails
+          content:
+              application/json:
+                schema:
+                  $ref: '#/components/schemas/emails'
+        '401': 
+          description: Unauthorized
+  /users/unique:
+    get:
+      tags:
+        - logged out users
+      summary: returns 204 if query string is not an existing email. Helps when signing up. This resource is not restricted like /users/{email} or admins/{email}/users
+      parameters:
+        - name: string
+          in: query 
+          required: true
+          schema:
+            type: string 
+      responses:
+        '204':
+          description: Not in use
+        '409':
+          description: User email already in use
+        '400':
+          description: Invalid email
+  /users/admins:
+    get:
+      tags:
+        - logged out users
+      summary: Returns a list of admin emails.
+      responses:
+        '200':
+          description: A JSON array of emails
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/emails'
+        '400':
+           description: failed request
+  /users/{email}:
+    patch:
+      tags:
+        - logged in users
+      summary: Updates a user email
+      parameters:
+        - name: email
+          in: path 
+          required: true 
+          description: old email
+          schema:
+            type: string 
+      requestBody:
+        required: true 
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/email'
+      responses:
+        '204':
+          description: email changed
+        '409':
+          description: User email already in use
+        '400':
+          description: Invalid email
+    get:
+      tags:
+        - logged in users
+      summary: Returns admin status and root folder_id
+      parameters:
+        - name: email
+          in: path 
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: User found and returned
+        '400':
+          description: Invalid email
+    delete:
+      tags:
+        - logged in users
+      description: Delete a user and all associated folders and files
+      parameters:
+        - name: email
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '204':
+          description: Successfully deleted a user
+        '404':
+          description: User not found
+  /users/{email}/authorize:
+    patch:
+      tags:
+        - admins
+      summary: Changes the admin status of a user
+      parameters:
+        - name: email
+          in: path 
+          required: true 
+          description: email whose status is being changed
+          schema:
+            type: string
+      requestBody:
+        required: true 
+        description: new status (if admin, then true)
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/boolean'
+      responses:
+        '201':
+          description: Admin status changed
+        '400':
+          description: Invalid admin status variable
+        '404':
+          description: Email not found
+  /users/{email}/folders:
+    post:
+      tags:
+        - logged in users
+      summary: Creates a folder. "parent" is folder_id of parent folder.
+      parameters:
+        - name: email
+          in: path 
+          required: true 
+          schema:
+            type: string 
+      requestBody:
+        required: true 
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/modified_folder_info'
+      responses:
+        '201':
+          description: Created
+        '400':
+          description: Invalid parameters
+    get:
+      tags:
+        - logged in users
+      summary: Returns folder_ids matching a string in name or description. If no string provided, returns all user folders.
+      parameters:
+        - name: email
+          in: path 
+          required: true 
+          schema:
+            type: string
+        - name: search_string
+          in: query
+          required: false
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Matching folder_ids returned
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/numbers'
+        '404':
+          description: Invalid email
+  /users/{email}/folders/{folder_id}:
+    patch:
+      tags:
+        - logged in users
+      summary: Modifies a folder name and description
+      parameters:
+        - name: folder_id
+          in: path 
+          required: true 
+          schema:
+            type: integer
+            format: int64
+            minimum: 0
+        - name: email
+          in: path 
+          required: true 
+          schema:
+            type: string
+      requestBody:
+        required: true 
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/modified_folder_info'
+      responses:
+        '204':
+          description: Updated
+        '400':
+          description: Invalid parameters
+    get:
+      tags:
+        - logged in users
+      summary: Gets a folder 
+      parameters:
+        - name: folder_id
+          in: path 
+          required: true 
+          schema:
+            type: integer
+            format: int64
+            minimum: 0
+        - name: email
+          in: path 
+          required: true 
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Resource returned
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/folder_info'
+        '400':
+          description: Invalid parameters
+    delete:
+      tags:
+        - logged in users
+      description: Delete a folder and all contents
+      parameters:
+        - name: folder_id
+          in: path 
+          required: true 
+          schema:
+            type: integer
+            format: int64
+            minimum: 0
+        - name: email
+          in: path 
+          required: true 
+          schema:
+            type: string
+      responses:
+        '204':
+          description: Successfully deleted a folder
+        '404':
+          description: Folder not found
+  /users/{email}/files:
+    post:
+      tags:
+        - logged in users
+      summary: Uploads a file and creates a file record
+      parameters:
+        - name: email
+          in: path 
+          required: true 
+          schema:
+            type: string
+      requestBody:
+        required: true 
+        content:
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/new_file_info'
+      responses:
+        '201':
+          description: File uploaded and created
+        '400':
+          description: Invalid parameters
+    get:
+      tags:
+        - logged in users
+      summary: Returns file_ids matching a string in name or description. If no string provided, returns all file_ids
+      parameters:
+        - name: email
+          in: path 
+          required: true 
+          schema:
+            type: string
+        - name: search_string
+          in: query
+          required: false
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Matching file_ids returned
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/numbers'
+        '400':
+          description: Invalid email
+  /users/{email}/files/{file_id}:
+    patch:
+      tags:
+        - logged in users
+      summary: Modifies a file name, location, description, number of plays, or last play time
+      parameters:
+        - name: file_id
+          in: path 
+          required: true 
+          schema:
+            type: integer
+            format: int64
+            minimum: 0
+        - name: email
+          in: path 
+          required: true 
+          schema:
+            type: string
+      requestBody:
+        required: true 
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/modified_file_info'
+      responses:
+        '204':
+          description: File record modified
+        '400':
+          description: Invalid parameters
+        '404':
+          description: File not found
+    get:
+      tags:
+        - logged in users
+      summary: Gets a file record and file URL
+      parameters:
+        - name: file_id
+          in: path 
+          required: true 
+          schema:
+            type: integer
+            format: int64
+            minimum: 0
+        - name: email
+          in: path 
+          required: true 
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Resource returned
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/returned_file_info'
+        '404':
+          description: Invalid parameters
+    delete:
+      tags:
+        - logged in users
+      description: Delete a file record and file binary
+      parameters:
+        - name: file_id
+          in: path 
+          required: true 
+          schema:
+            type: integer
+            format: int64
+            minimum: 0
+        - name: email
+          in: path 
+          required: true 
+          schema:
+            type: string
+      responses:
+        '204':
+          description: Successfully deleted a file
+        '404':
+          description: File not found
+
+  /authenticate:
+    post:
+      tags:
+        - logged out users
+      summary: Log into system
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/credentials'
+      responses:
+        '201':
+          description: successfully logged in
+        '200':
+          description: already logged in
+        '403':
+          description: access denied
+    get:
+      tags:
+        - logged out users
+      summary: Get log in status/log out status
+      responses:
+        '200':
+          description: logged in
+        '403':
+          description: not logged in
+    delete:
+      tags:
+        - logged out users
+      summary: Log out of system
+      responses:
+        '200':
+          description: successfully logged out
+        '400':
+          description: bad request
+         
+components:
+  schemas:
+    email:
+      type: string
+    emails:
+      type: array
+      items:
+        type: string
+      example: [a@b.c, example@email.com]
+    boolean:
+      type: boolean
+    numbers:
+      type: array 
+      items:
+        type: number
+      example: [1, 4, 6]
+    modified_folder_info:
+      type: object
+      properties:
+        name:
+          type: string
+        parent:
+          type: number
+        description:
+          type: string 
+      example:
+        name: rock music
+        parent: 12
+        description: music made out of rocks
+    folder_info:
+      type: object 
+      properties:
+        file_ids:
+          type: array 
+          items:
+            type: number 
+        subfolder_ids:
+          type: array 
+          items:
+            type: number 
+        folder_name:
+          type: string 
+        folder_description:
+          type: string
+      example:
+        file_ids: [0, 1, 12, 13, 101]
+        subfolder_ids: [0, 3, 66]
+        folder_name: rock music
+        folder_description: music made out of rocks
+    new_file_info:
+      type: object
+      properties:
+        name:
+          type: string
+        audio:
+          type: string
+          format: binary
+        folder:
+          type: number
+        description:
+          type: string
+      example:
+        name: Rick Sawyer
+        audio: 10101010101000001...
+        folder: 4
+        description: A song by Rush
+    modified_file_info:
+      type: object
+      properties:
+        name:
+          type: string
+        folder:
+          type: number
+        description:
+          type: string
+        num_plays:
+          type: number
+        play_time:
+          type: string
+      example:
+        name: Rick Sawyer
+        folder: 22
+        description: A song by Rush
+        num_plays: 1
+        last_play_time: "2018-12-10T13:45:00.000Z"
+    returned_file_info:
+      type: object
+      properties:
+        name:
+          type: string
+        audio_path:
+          type: string
+        folder_id:
+          type: number
+        file_description:
+          type: string
+        num_plays:
+          type: number
+        last_play_time:
+          type: string
+      example:
+        name: Rick Sawyer
+        audio_path: https://host.domain/folder/path/to/song/RickSawyer.extension
+        folder_id: 22
+        file_description: A song by Rush
+        num_plays: 1
+        last_play_time: 2018-12-10T13:45:00.000Z
+    credentials:
+      type: object
+      properties:
+        cs_username:
+          type: string
+        password:
+          type: string
+      example:
+        cs_username: tshutty
+        password: gorilla
+            
+  
+        
+      
