@@ -18,7 +18,6 @@ app.config['SESSION_COOKIE_NAME'] = 'peanutButter'
 app.config['SESSION_COOKIE_DOMAIN'] = settings.APP_HOST
 Session(app)
 
-
 ####################################################################################
 #
 # Error handlers
@@ -34,24 +33,15 @@ def not_found(error):
 ####################################################################################
 #
 # Static Endpoints for humans
-#
+# curl -k https://cs3103.cs.unb.ca:5045/
 class Root(Resource):
-   # get method. What might others be aptly named? (hint: post)
 	def get(self):
 		return app.send_static_file('index.html')
 
 ####################################################################################
-#
-# schools routing: GET and POST, individual school access
-#
+
 class SignIn(Resource):
-	#
-	# Set Session and return Cookie
-	#
-	# Example curl command:
-	# curl -i -H "Content-Type: application/json" -X POST -d '{"email": "Casper", "password": "crap"}'
-	#  	-c cookie-jar -k https://cs3103.cs.unb.ca:61340/signin
-	#
+	#curl -i -H "Content-Type: application/json" -X POST -d '{"username": "tshutty", "password": "..."}' -c cookie-jar -b cookie-jar -k https://cs3103.cs.unb.ca:5045/signin
 	def post(self):
 		print('initial data\nsid=',session.sid,'session=',session)
 		print('cookie=', request.cookies)
@@ -98,9 +88,7 @@ class SignIn(Resource):
 
 	# GET: Check Cookie data with Session data
 	#
-	# Example curl command:
-	# curl -i -H "Content-Type: application/json" -X GET -b cookie-jar
-	#	-k https://cs3103.cs.unb.ca:61340/signin
+	# curl -i -H "Content-Type: application/json" -X GET -c cookie-jar -b cookie-jar -k https://cs3103.cs.unb.ca:5045/signin
 	def get(self):
 		success = False
 		if 'email' in session:
@@ -114,28 +102,57 @@ class SignIn(Resource):
 
 	# DELETE: Check Cookie data with Session data
 	#
-	# Example curl command:
-	# curl -i -H "Content-Type: application/json" -X DELETE -b cookie-jar
-	#	-k https://info3103.cs.unb.ca:61340/signin
+	# curl -i -H "Content-Type: application/json" -X DELETE -c cookie-jar -b cookie-jar -k https://cs3103.cs.unb.ca:5045/signin
 
 	def delete(self):
 		# print('sid=',session.sid,'session=',session)
 		if 'email' in session:
 			session.pop('email',None)
-
+			session.pop('admin_status',None)
+		print('del sess=',session)
 		response = {'status': 'success'}
 		responseCode = 200
 		return make_response(jsonify(response), responseCode)
 
+def check_if_admin():
+	dbConnection = pymysql.connect(
+		settings.MYSQL_HOST,
+		settings.MYSQL_USER,
+		settings.MYSQL_PASSWD,
+		settings.MYSQL_DB,
+		charset='utf8mb4',
+		cursorclass= pymysql.cursors.DictCursor)
+		
+	if 'admin_status' not in session:
+		sql = 'getUser'
+		try:
+			cursor = dbConnection.cursor()
+			cursor.callproc(sql, [session['email']]) # stored procedure, arguments
+			row = cursor.fetchall() # get all the results
+			if len(row) == 0:
+				return make_response(jsonify({'status': 'no account'}), 403)
+
+			session['admin_status'] = row[0]['admin_status']
+		except Exception as e:
+			print(e)
+			abort(500) # Nondescript server error
+		finally:
+			cursor.close()
+	dbConnection.close()
+	print('as=',session['admin_status'])
+
 
 class Users(Resource):
     # GET: Only for admins
-	#
-	# Example request: curl http://cs3103.cs.unb.ca:5045/users
+	# curl -i -H "Content-Type: application/json" -X GET -c cookie-jar -b cookie-jar -k https://cs3103.cs.unb.ca:5045/users
 	def get(self):
 
 		if 'email' not in session:
 			return make_response(jsonify({'status': 'not logged in'}), 403)
+		
+		check_if_admin()
+		if session['admin_status'] == 0:
+			return make_response(jsonify({'status': 'not admin'}), 403)
 
 		dbConnection = pymysql.connect(
 			settings.MYSQL_HOST,
@@ -144,23 +161,6 @@ class Users(Resource):
 			settings.MYSQL_DB,
 			charset='utf8mb4',
 			cursorclass= pymysql.cursors.DictCursor)
-			
-		if 'admin_status' not in session:
-			sql = 'getUser'
-			try:
-				cursor = dbConnection.cursor()
-				cursor.callproc(sql, [session['email']]) # stored procedure, arguments
-				rows = cursor.fetchall() # get all the results
-				if len(rows) == 0:
-					return make_response(jsonify({'status': 'no account'}), 403)
-
-				session['admin_status'] = rows[0]['admin_status']
-			except Exception as e:
-				print(e)
-				abort(500) # Nondescript server error
-			finally:
-				cursor.close()
-				dbConnection.close()
 
 		if session['admin_status'] == 0:
 			return make_response(jsonify({'status': 'not an admin'}), 403)
@@ -178,16 +178,11 @@ class Users(Resource):
 		return make_response(jsonify({'users': rows}), 200) # turn set into json and return it
 
 	def post(self):
-        #
-        # Sample command line usage:
-        #
-        # curl -i -X POST -H "Content-Type: application/json" -d '{"email": "12pm@mar19"}' http://cs3103.cs.unb.ca:5045/users
+        # curl -i -H "Content-Type: application/json" -X POST -d '{"email": "mar20@2:19pm"}' -c cookie-jar -b cookie-jar -k https://cs3103.cs.unb.ca:5045/users
 
 		if not request.json or not 'email' in request.json:
 			return make_response(jsonify({'status': 'no request'}), 400)
 
-			# The request object holds the ... wait for it ... client request!
-		# Pull the results out of the json request
 		email = request.json['email']
 
 		dbConnection = pymysql.connect(settings.MYSQL_HOST,
@@ -199,9 +194,9 @@ class Users(Resource):
 		sql = 'addUser'
 		try:
 			cursor = dbConnection.cursor()
-			sqlArgs = (email, 1) # Must be a collection
+			sqlArgs = (email, 0) # Must be a collection
 			cursor.callproc(sql,sqlArgs) # stored procedure, with arguments
-			row = cursor.fetchone()
+			# row = cursor.fetchone()
 			dbConnection.commit() # database was modified, commit the changes
 		except pymysql.err.IntegrityError:
 			return make_response(jsonify({'status': 'account exists'}), 409)
@@ -219,6 +214,7 @@ class Users(Resource):
 		return make_response(jsonify( { "uri" : uri } ), 201) # successful resource creation
 
 #/users/<string:email>
+#curl -i -H "Content-Type: application/json" -X GET -c cookie-jar -b cookie-jar -k https://cs3103.cs.unb.ca:5045/users/tshutty@unb.ca
 class User(Resource):
 	def get(self, email):
 		if 'email' not in session or session['email'] != email:
@@ -244,6 +240,44 @@ class User(Resource):
 			dbConnection.close()
 		return make_response(jsonify({'user': row}), 200) # turn set into json and return it
 
+# /users/{email}/authorize
+# curl -i -H "Content-Type: application/json" -X PATCH -d '{"admin_status": 0}' -c cookie-jar -b cookie-jar -k https://cs3103.cs.unb.ca:5045/users/tshutty@unb.ca/authorize
+class Authorize(Resource):
+	def patch(self, email):
+		if 'email' not in session:
+			return make_response(jsonify({'status': 'not logged in'}), 403)
+
+		check_if_admin()
+		if session['admin_status'] == 0:
+			return make_response(jsonify({'status': 'not admin'}), 403)
+			
+		if not request.json or not 'admin_status' in request.json:
+			return make_response(jsonify({'status': 'no request data'}), 400)
+
+		new_admin_status = request.json['admin_status']
+		print(new_admin_status, type(new_admin_status), email)
+		dbConnection = pymysql.connect(
+			settings.MYSQL_HOST,
+			settings.MYSQL_USER,
+			settings.MYSQL_PASSWD,
+			settings.MYSQL_DB,
+			charset='utf8mb4',
+			cursorclass= pymysql.cursors.DictCursor)
+
+		sql = 'setAdmin'
+		try:
+			cursor = dbConnection.cursor()
+			cursor.callproc(sql, [email, new_admin_status])
+			dbConnection.commit() #NEEDED for updates and inserts
+		except pymysql.err.InternalError:
+			return make_response(jsonify({'status':'no change to '+email}), 200)
+		except:
+			abort(500) # Nondescript server error
+		finally:
+			cursor.close()
+			dbConnection.close()
+		return make_response(jsonify({'status':'updated '+email}), 200)
+		
 
 #
 # Identify/create endpoints and endpoint objects
@@ -252,6 +286,7 @@ api.add_resource(Root,'/')
 api.add_resource(SignIn, '/signin')
 api.add_resource(Users, '/users')
 api.add_resource(User, '/users/<string:email>')
+api.add_resource(Authorize, '/users/<string:email>/authorize')
 
 
 #############################################################################
