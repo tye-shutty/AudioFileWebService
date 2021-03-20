@@ -184,7 +184,7 @@ class Users(Resource):
         # curl -i -X POST -H "Content-Type: application/json" -d '{"email": "12pm@mar19"}' http://cs3103.cs.unb.ca:5045/users
 
 		if not request.json or not 'email' in request.json:
-			abort(400) # bad request
+			return make_response(jsonify({'status': 'no request'}), 400)
 
 			# The request object holds the ... wait for it ... client request!
 		# Pull the results out of the json request
@@ -218,10 +218,11 @@ class Users(Resource):
 		uri = uri+str(request.url_rule)+'/'+email
 		return make_response(jsonify( { "uri" : uri } ), 201) # successful resource creation
 
+#/users/<string:email>
 class User(Resource):
-	def get(self):
-		if 'email' not in session:
-			return make_response(jsonify({'status': 'not logged in'}), 403)
+	def get(self, email):
+		if 'email' not in session or session['email'] != email:
+			return make_response(jsonify({'status': 'not logged in as '+email}), 403)
 
 		dbConnection = pymysql.connect(
 			settings.MYSQL_HOST,
@@ -242,6 +243,7 @@ class User(Resource):
 			cursor.close()
 			dbConnection.close()
 		return make_response(jsonify({'user': row}), 200) # turn set into json and return it
+
 
 #
 # Identify/create endpoints and endpoint objects
