@@ -50,7 +50,7 @@ paths:
                   $ref: '#/components/schemas/emails'
         '401': 
           description: Unauthorized
-  /users/unique:
+  /unique:
     get:
       tags:
         - logged out users
@@ -68,7 +68,7 @@ paths:
           description: User email already in use
         '400':
           description: Invalid email
-  /users/admins:
+  /admins:
     get:
       tags:
         - logged out users
@@ -412,7 +412,7 @@ paths:
         '404':
           description: File not found
 
-  /authenticate:
+  /login:
     post:
       tags:
         - logged out users
