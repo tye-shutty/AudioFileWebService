@@ -133,7 +133,7 @@ paths:
           schema:
             type: string
       responses:
-        '204':
+        '200':
           description: Successfully deleted a user
         '404':
           description: User not found
@@ -157,7 +157,7 @@ paths:
             schema:
               $ref: '#/components/schemas/boolean'
       responses:
-        '201':
+        '200':
           description: Admin status changed
         '400':
           description: Invalid admin status variable

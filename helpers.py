@@ -11,28 +11,28 @@ import ssl #include ssl libraries
 import sys
 
 def check_if_admin():
-	dbConnection = pymysql.connect(
-		settings.MYSQL_HOST,
-		settings.MYSQL_USER,
-		settings.MYSQL_PASSWD,
-		settings.MYSQL_DB,
-		charset='utf8mb4',
-		cursorclass= pymysql.cursors.DictCursor)
-		
-	if 'admin_status' not in session:
-		sql = 'getUser'
-		try:
-			cursor = dbConnection.cursor()
-			cursor.callproc(sql, [session['email']]) # stored procedure, arguments
-			row = cursor.fetchall() # get all the results
-			if len(row) == 0:
-				return make_response(jsonify({'status': 'no account'}), 403)
+    dbConnection = pymysql.connect(
+        settings.MYSQL_HOST,
+        settings.MYSQL_USER,
+        settings.MYSQL_PASSWD,
+        settings.MYSQL_DB,
+        charset='utf8mb4',
+        cursorclass= pymysql.cursors.DictCursor)
+        
+    if 'admin_status' not in session:
+        sql = 'getUser'
+        try:
+            cursor = dbConnection.cursor()
+            cursor.callproc(sql, [session['email']]) # stored procedure, arguments
+            row = cursor.fetchall() # get all the results
+            if len(row) == 0:
+                return make_response(jsonify({'status': 'no account'}), 403)
 
-			session['admin_status'] = row[0]['admin_status']
-		except Exception as e:
-			print(e)
-			abort(500) # Nondescript server error
-		finally:
-			cursor.close()
-	dbConnection.close()
-	print('as=',session['admin_status'])
+            session['admin_status'] = row[0]['admin_status']
+        except Exception as e:
+            print(e)
+            abort(500) # Nondescript server error
+        finally:
+            cursor.close()
+    dbConnection.close()
+    print('as=',session['admin_status'])
