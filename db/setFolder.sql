@@ -10,7 +10,8 @@ CREATE PROCEDURE setFolder
 )
 BEGIN
    SET @y = (SELECT count(*) from folders where folder_id=new_parent);
-   IF (@y = 1) THEN
+   SET @x = (SELECT folder_name from folders where folder_id=id_in);
+   IF (@y = 1 and @x != "root") THEN
       /* Do the INSERT */
       UPDATE folders
       SET folder_name = new_name,
@@ -25,7 +26,7 @@ BEGIN
       END IF;
    ELSE 
       SIGNAL SQLSTATE '52711'
-      SET MESSAGE_TEXT = 'No such parent folder.';
+      SET MESSAGE_TEXT = 'Unable to update the folder.';
    END IF;
 
 END //
