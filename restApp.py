@@ -47,11 +47,13 @@ from authorize import Authorize
 from signin import SignIn
 from user import User
 from users import Users
+from folders import Folders
 api = Api(app)
 api.add_resource(Root,'/')
 api.add_resource(SignIn, '/signin')
 api.add_resource(Users, '/users')
 api.add_resource(User, '/users/<string:email>')
+api.add_resource(Folders, '/users/<string:email>/folders')
 api.add_resource(Authorize, '/users/<string:email>/authorize')
 
 #############################################################################
