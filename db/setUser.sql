@@ -1,3 +1,4 @@
+/* This SQL updates the user information on request */
 DELIMITER //
 DROP PROCEDURE IF EXISTS setUser //
 CREATE PROCEDURE setUser
