@@ -1,3 +1,4 @@
+/* This SQL requests a specfic folder */
 DELIMITER //
 DROP PROCEDURE IF EXISTS getFolder //
 CREATE PROCEDURE getFolder
@@ -6,7 +7,7 @@ CREATE PROCEDURE getFolder
    IN id_in int
 )
 BEGIN
-  select * from folders where folder_id = id_in;
+  SELECT * FROM folders WHERE folder_id = id_in;
 
 END //
 DELIMITER ;
