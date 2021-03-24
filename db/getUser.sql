@@ -1,3 +1,4 @@
+/* This SQL requests for specific user */
 DELIMITER //
 DROP PROCEDURE IF EXISTS getUser //
 CREATE PROCEDURE getUser
@@ -6,7 +7,7 @@ CREATE PROCEDURE getUser
    IN email_in VARCHAR(200)
 )
 BEGIN
-  select * from users where email = email_in;
+  SELECT * FROM users WHERE email = email_in;
 
 END //
 DELIMITER ;
