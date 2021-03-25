@@ -1,3 +1,4 @@
+/* This SQL file deletes a requested folder */
 DELIMITER //
 DROP PROCEDURE IF EXISTS deleteFolder //
 CREATE PROCEDURE deleteFolder
@@ -6,7 +7,7 @@ CREATE PROCEDURE deleteFolder
    IN id_in VARCHAR(200)
 )
 BEGIN
-  delete from folders where folder_id = id_in;
+  DELETE FROM folders WHERE folder_id = id_in;
 
    /*ROW_COUNT() returns the number of rows updated, inserted or deleted by the preceding statement.*/
    IF(ROW_COUNT() = 0) THEN
