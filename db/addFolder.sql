@@ -1,3 +1,4 @@
+/* This SQL file adds a folder into the database */
 DELIMITER //
 DROP PROCEDURE IF EXISTS addFolder //
 CREATE PROCEDURE addFolder
@@ -10,7 +11,7 @@ CREATE PROCEDURE addFolder
 BEGIN
 
    declare x int default 0;  
-   select count(*) into x from folders where folder_id=parent_in; 
+   SELECT COUNT(*) INTO x FROM folders WHERE folder_id=parent_in; 
    
    /* Do the INSERT */
    IF (x != 0) THEN

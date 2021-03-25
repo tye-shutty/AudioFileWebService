@@ -1,3 +1,4 @@
+/* This SQL file adds a user to the Database */
 DELIMITER //
 DROP PROCEDURE IF EXISTS addUser //
 CREATE PROCEDURE addUser
@@ -7,7 +8,7 @@ CREATE PROCEDURE addUser
    IN admin_status_in BOOLEAN
 )
 BEGIN
-   SET @y = (SELECT count(*) from users where email=email_in);
+   SET @y = (SELECT count(*) FROM users WHERE email=email_in);
    IF (@y = 0) THEN
       /* Do the INSERT */
       INSERT INTO folders (folder_name)
