@@ -188,7 +188,7 @@ paths:
     get:
       tags:
         - logged in users
-      summary: Returns folder_ids matching a string in name or description. If no string provided, returns all user folders.
+      summary: Returns folder_ids matching a string in name or description. If empty string provided, returns all user folders.
       parameters:
         - name: email
           in: path 

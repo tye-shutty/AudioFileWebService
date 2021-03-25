@@ -47,7 +47,12 @@ class Folders(Resource):
     #     return make_response(jsonify({'folders': rows}), 200) # turn set into json and return it
 
     def post(self, email):
-        # curl -i -H "Content-Type: application/json" -X POST -d '{"email": "mar20@2:19pm"}' -c cookie-jar -b cookie-jar -k https://cs3103.cs.unb.ca:5045/users
+        # signin
+        # curl -i -H "Content-Type: application/json" -X POST -d '{"username": "tshutty", "password": "..."}' -c cookie-jar -b cookie-jar -k https://cs3103.cs.unb.ca:5045/signin
+        # create account
+        # curl -i -H "Content-Type: application/json" -X POST -d '{"email": "tshutty"}' -c cookie-jar -b cookie-jar -k https://cs3103.cs.unb.ca:5045/users
+        # create folder
+        # curl -i -H "Content-Type: application/json" -X POST -d '{"folder_name": "hotdogs","folder_description":"","parent":4}' -c cookie-jar -b cookie-jar -k https://cs3103.cs.unb.ca:5045/users/tshutty@unb.ca/folders
 
         if 'email' not in session:
             return make_response(jsonify({'status': 'not logged in'}), 403)
@@ -79,7 +84,7 @@ class Folders(Resource):
         finally:
             cursor.close()
         print('owner=',owner)
-        if(owner == session['email']):
+        if(owner['e'] == session['email']):
             sql = 'addFolder'
             try:
                 cursor = dbConnection.cursor()
@@ -99,7 +104,7 @@ class Folders(Resource):
         # returning the uri to it, based on the return value from the stored procedure.
         # Yes, now would be a good time check out the procedure.
             uri = 'https://'+settings.APP_HOST+':'+str(settings.APP_PORT)
-            uri = uri+str(request.url_rule)+'/'+str(folder_id)
+            uri = uri+str(request.url_rule)+'/'+str(folder_id['LAST_INSERT_ID()'])
             return make_response(jsonify( { "uri" : uri } ), 201) # successful resource creation
         else:
             return make_response(jsonify({'status': 'not owner'}), 403)
