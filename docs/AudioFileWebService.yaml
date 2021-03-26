@@ -311,7 +311,7 @@ paths:
     get:
       tags:
         - logged in users
-      summary: Returns file_ids matching a string in name or description. If no string provided, returns all file_ids
+      summary: Returns file_ids matching a string in name or description of a user owned file. If "%" provided, returns all user file_ids
       parameters:
         - name: email
           in: path 
