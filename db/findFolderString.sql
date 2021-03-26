@@ -7,6 +7,6 @@ CREATE PROCEDURE findFolderString
    IN search_string VARCHAR(600)
 )
 BEGIN
-   select folder_id from folders where email = email_in and (folder_description like search_string or folder_name like search_string); 
+   select folder_id from folders where owner_email = email_in and (folder_description like search_string or folder_name like search_string); 
 END //
 DELIMITER ;
