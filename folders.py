@@ -52,14 +52,15 @@ class Folders(Resource):
         # create account
         # curl -i -H "Content-Type: application/json" -X POST -d '{"email": "tshutty"}' -c cookie-jar -b cookie-jar -k https://cs3103.cs.unb.ca:5045/users
         # create folder
-        # curl -i -H "Content-Type: application/json" -X POST -d '{"folder_name": "hotdogs","folder_description":"","parent":4}' -c cookie-jar -b cookie-jar -k https://cs3103.cs.unb.ca:5045/users/tshutty@unb.ca/folders
+        # curl -i -H "Content-Type: application/json" -X POST -d '{"folder_name": "hotdogs","folder_description":"pink"}' -c cookie-jar -b cookie-jar -k https://cs3103.cs.unb.ca:5045/users/tshutty@unb.ca/folders
+        # create subfolder
+        # curl -i -H "Content-Type: application/json" -X POST -d '{"folder_name": "hotdogs","folder_description":"purple","parent":4}' -c cookie-jar -b cookie-jar -k https://cs3103.cs.unb.ca:5045/users/tshutty@unb.ca/folders
+        
 
         if 'email' not in session:
             return make_response(jsonify({'status': 'not logged in'}), 403)
 
-        if (not request.json or not 'folder_name' in request.json
-        or not 'folder_description' in request.json
-        or not 'parent' in request.json):
+        if (not request.json or not 'folder_name' in request.json or not 'folder_description' in request.json):
             return make_response(jsonify({'status': 'invalid request body'}), 400)
 
         folder_name = request.json['folder_name']
@@ -72,40 +73,24 @@ class Folders(Resource):
             settings.MYSQL_DB,
             charset='utf8mb4',
             cursorclass= pymysql.cursors.DictCursor)
-        sql = 'findFolderOwner'
+       
+        sql = 'addFolder'
         try:
             cursor = dbConnection.cursor()
-            cursor.callproc(sql,[parent]) # stored procedure, with arguments
-            owner = cursor.fetchone()
+            sqlArgs = (folder_name, folder_description, parent, session['email']) # Must be a collection
+            cursor.callproc(sql,sqlArgs) # stored procedure, with arguments
+            folder_id = cursor.fetchone()
+            dbConnection.commit() # database was modified, commit the changes
         except pymysql.err.InternalError:
-            return make_response(jsonify({'status': 'no such parent folder'}), 400)
+            return make_response(jsonify({'status': 'no such owned parent folder'}), 400)
         except:
             abort(500) # Nondescript server error
         finally:
             cursor.close()
-        print('owner=',owner)
-        if(owner['e'] == session['email']):
-            sql = 'addFolder'
-            try:
-                cursor = dbConnection.cursor()
-                sqlArgs = (folder_name, folder_description, parent) # Must be a collection
-                cursor.callproc(sql,sqlArgs) # stored procedure, with arguments
-                folder_id = cursor.fetchone()
-                dbConnection.commit() # database was modified, commit the changes
-            except pymysql.err.InternalError:
-                return make_response(jsonify({'status': 'no such parent folder'}), 400)
-            except:
-                abort(500) # Nondescript server error
-            finally:
-                cursor.close()
-                dbConnection.close()
-            print('folder_id=',folder_id)
-        # Look closely, Grasshopper: we just created a new resource, so we're
-        # returning the uri to it, based on the return value from the stored procedure.
-        # Yes, now would be a good time check out the procedure.
-            uri = 'https://'+settings.APP_HOST+':'+str(settings.APP_PORT)
-            uri = uri+str(request.url_rule)+'/'+str(folder_id['LAST_INSERT_ID()'])
-            return make_response(jsonify( { "uri" : uri } ), 201) # successful resource creation
-        else:
-            return make_response(jsonify({'status': 'not owner'}), 403)
             dbConnection.close()
+        print('folder_id=',folder_id)
+        
+        uri = 'https://'+settings.APP_HOST+':'+str(settings.APP_PORT)
+        uri = uri+str(request.url_rule)+'/'+str(folder_id['LAST_INSERT_ID()'])
+        return make_response(jsonify( { "uri" : uri } ), 201) # successful resource creation
+
