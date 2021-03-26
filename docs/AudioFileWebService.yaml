@@ -282,7 +282,7 @@ paths:
           schema:
             type: string
       responses:
-        '204':
+        '200':
           description: Successfully deleted a folder
         '404':
           description: Folder not found

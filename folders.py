@@ -9,42 +9,38 @@ import ssl #include ssl libraries
 import sys
 
 class Folders(Resource):
-    # curl -i -H "Content-Type: application/json" -X GET -c cookie-jar -b cookie-jar -k https://cs3103.cs.unb.ca:5045/users
-    # def get(self):
+    # curl -i -H "Content-Type: application/json" -X GET -c cookie-jar -b cookie-jar -k "https://cs3103.cs.unb.ca:5045/users/tshutty@unb.ca/folders?string=%"
+    def get(self, email):
 
-    #     if 'email' not in session:
-    #         return make_response(jsonify({'status': 'not logged in'}), 403)
+        if 'email' not in session:
+            return make_response(jsonify({'status': 'not logged in'}), 403)
 
-    #     dbConnection = pymysql.connect(
-    #         settings.MYSQL_HOST,
-    #         settings.MYSQL_USER,
-    #         settings.MYSQL_PASSWD,
-    #         settings.MYSQL_DB,
-    #         charset='utf8mb4',
-    #         cursorclass= pymysql.cursors.DictCursor)
+        check_if_admin()
+        if session['email'] != email and session['admin_status'] == 0:
+            return make_response(jsonify({'status': 'not logged in as '+email+' and not admin'}), 403)
 
-    #     sql = 'getUser'
-    #     try:
-    #         cursor = dbConnection.cursor()
-    #         cursor.callproc(sql, [session['email']]) # stored procedure, arguments
-    #         user = cursor.fetchone()
-    #     except:
-    #         abort(500) # Nondescript server error
-    #     finally:
-    #         cursor.close()
-    #         # dbConnection.close()
-    #     print('user=',user)
-    #     sql = 'getFolders'
-    #     try:
-    #         cursor = dbConnection.cursor()
-    #         cursor.callproc(sql, [user['root']]) # stored procedure, no arguments
-    #         rows = cursor.fetchall() # get all the results
-    #     except:
-    #         abort(500) # Nondescript server error
-    #     finally:
-    #         cursor.close()
-    #         dbConnection.close()
-    #     return make_response(jsonify({'folders': rows}), 200) # turn set into json and return it
+        print(request)
+        string = request.args.get('string', "%")
+
+        dbConnection = pymysql.connect(
+            settings.MYSQL_HOST,
+            settings.MYSQL_USER,
+            settings.MYSQL_PASSWD,
+            settings.MYSQL_DB,
+            charset='utf8mb4',
+            cursorclass= pymysql.cursors.DictCursor)
+
+        sql = 'findFolderString'
+        try:
+            cursor = dbConnection.cursor()
+            cursor.callproc(sql, [session['email'],string]) # stored procedure, no arguments
+            rows = cursor.fetchall() # get all the results
+        except:
+            abort(500) # Nondescript server error
+        finally:
+            cursor.close()
+            dbConnection.close()
+        return make_response(jsonify({'folders': rows}), 200) # turn set into json and return it
 
     def post(self, email):
         # signin
@@ -52,10 +48,10 @@ class Folders(Resource):
         # create account
         # curl -i -H "Content-Type: application/json" -X POST -d '{"email": "tshutty"}' -c cookie-jar -b cookie-jar -k https://cs3103.cs.unb.ca:5045/users
         # create folder
-        # curl -i -H "Content-Type: application/json" -X POST -d '{"folder_name": "hotdogs","folder_description":"pink"}' -c cookie-jar -b cookie-jar -k https://cs3103.cs.unb.ca:5045/users/tshutty@unb.ca/folders
+        # curl -i -H "Content-Type: application/json" -X POST -d '{"folder_name": "hotdogs","folder_description":"pink", "parent":0}' -c cookie-jar -b cookie-jar -k https://cs3103.cs.unb.ca:5045/users/tshutty@unb.ca/folders
         # create subfolder
         # curl -i -H "Content-Type: application/json" -X POST -d '{"folder_name": "hotdogs","folder_description":"purple","parent":4}' -c cookie-jar -b cookie-jar -k https://cs3103.cs.unb.ca:5045/users/tshutty@unb.ca/folders
-        
+
 
         if 'email' not in session:
             return make_response(jsonify({'status': 'not logged in'}), 403)
