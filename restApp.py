@@ -48,13 +48,15 @@ from signin import SignIn
 from user import User
 from users import Users
 from folders import Folders
+from folder import Folder
 api = Api(app)
 api.add_resource(Root,'/')
 api.add_resource(SignIn, '/signin')
 api.add_resource(Users, '/users')
 api.add_resource(User, '/users/<string:email>')
-api.add_resource(Folders, '/users/<string:email>/folders')
 api.add_resource(Authorize, '/users/<string:email>/authorize')
+api.add_resource(Folders, '/users/<string:email>/folders')
+api.add_resource(Folder, '/users/<string:email>/folders/<int:folder>')
 
 #############################################################################
 if __name__ == "__main__":

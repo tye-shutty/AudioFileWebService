@@ -12,7 +12,7 @@ import ssl #include ssl libraries
 import sys
 
 class SignIn(Resource):
-    #curl -i -H "Content-Type: application/json" -X POST -d '{"username": "tshutty", "password": "..."}' -c cookie-jar -b cookie-jar -k https://cs3103.cs.unb.ca:5045/signin
+    # curl -i -H "Content-Type: application/json" -X POST -d '{"username": "tshutty", "password": "..."}' -c cookie-jar -b cookie-jar -k https://cs3103.cs.unb.ca:5045/signin
     def post(self):
         print('initial data\nsid=',session.sid,'session=',session)
         print('cookie=', request.cookies)
