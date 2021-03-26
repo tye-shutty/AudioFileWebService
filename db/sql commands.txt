@@ -1,0 +1,2 @@
+source db/addFolder.sql; source db/addUser.sql; source db/createFolders.sql; source db/createUsers.sql; source db/deleteFolder.sql; source db/deleteUser.sql; source db/findFolderString.sql; source db/getFolder.sql; source db/getUser.sql; source db/getUsers.sql; source db/populateTables.sql; source db/setFolder.sql; source db/setUser.sql;
+select * from users; select * from folders;
