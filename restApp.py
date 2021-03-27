@@ -11,12 +11,14 @@ import pymysql.cursors
 import settings # Our server and db settings, stored in settings.py
 import ssl #include ssl libraries
 import sys
+from werkzeug.utils import secure_filename
 
 app = Flask(__name__, static_url_path='/static')
 app.secret_key = settings.SECRET_KEY
 app.config['SESSION_TYPE'] = 'filesystem'
 app.config['SESSION_COOKIE_NAME'] = 'peanutButter'
 app.config['SESSION_COOKIE_DOMAIN'] = settings.APP_HOST
+app.config['UPLOAD_FOLDER'] = settings.UPLOAD_FOLDER
 Session(app)
 
 ####################################################################################
@@ -49,6 +51,8 @@ from user import User
 from users import Users
 from folders import Folders
 from folder import Folder
+from files import Files
+from file import File
 api = Api(app)
 api.add_resource(Root,'/')
 api.add_resource(SignIn, '/signin')
@@ -57,10 +61,12 @@ api.add_resource(User, '/users/<string:email>')
 api.add_resource(Authorize, '/users/<string:email>/authorize')
 api.add_resource(Folders, '/users/<string:email>/folders')
 api.add_resource(Folder, '/users/<string:email>/folders/<int:folder>')
+api.add_resource(Files, '/users/<string:email>/files')
+api.add_resource(File, '/users/<string:email>/files/<int:file>')
 
 #############################################################################
 if __name__ == "__main__":
-	context = ('cert.pem', 'key.pem') # Identify the certificates you've generated.
+	context = ('cert.pem', 'key.pem')
 	app.run(host=settings.APP_HOST, 
 		port=settings.APP_PORT, 
 		ssl_context=context,

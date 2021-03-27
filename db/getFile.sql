@@ -7,7 +7,10 @@ CREATE PROCEDURE getFile
    IN id_in int
 )
 BEGIN
-  SELECT * FROM files WHERE file_id = id_in;
+  SELECT file_id, file_name, file_description, files.parent, upload_date, last_played, times_played, owner_email
+  FROM files 
+  INNER JOIN folders on (files.parent = folders.folder_id)
+  WHERE file_id = id_in;
 
 END //
 DELIMITER ;
