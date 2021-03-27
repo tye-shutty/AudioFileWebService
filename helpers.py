@@ -36,3 +36,7 @@ def check_if_admin():
             cursor.close()
     dbConnection.close()
     print('as=',session['admin_status'])
+
+
+def allowed_file(filename):
+    return '.' in filename and filename.rsplit('.', 1)[1].lower() in settings.ALLOWED_EXTENSIONS
