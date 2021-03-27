@@ -151,11 +151,14 @@ paths:
             type: string
       requestBody:
         required: true 
-        description: new status (if admin, then true)
+        description: new status (if admin, then 1)
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/boolean'
+              type: integer
+              format: int64
+              minimum: 0
+              maximum: 1
       responses:
         '200':
           description: Admin status changed
@@ -366,7 +369,7 @@ paths:
     get:
       tags:
         - logged in users
-      summary: Gets a file record and file URL
+      summary: Gets a file record or file stream
       parameters:
         - name: file_id
           in: path 
@@ -380,6 +383,12 @@ paths:
           required: true 
           schema:
             type: string
+        - name: stream
+          in: path
+          required: false 
+          description: true or false
+          schema:
+            $ref: '#/components/schemas/boolean'
       responses:
         '200':
           description: Resource returned
