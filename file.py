@@ -3,6 +3,7 @@ from flask_restful import Resource, Api, reqparse
 from flask_session import Session
 from helpers import check_if_admin
 import json
+import os
 import pymysql.cursors
 import settings # Our server and db settings, stored in settings.py
 import ssl #include ssl libraries
@@ -172,6 +173,9 @@ class File(Resource):
             finally:
                 cursor.close()
                 dbConnection.close()
+
+            if os.path.exists(safe_join(settings.UPLOAD_FOLDER, str(file))):
+                os.remove(safe_join(settings.UPLOAD_FOLDER, str(file)))
 
             return make_response(jsonify({'status':'deleted '+str(file)}), 200)
         else:
