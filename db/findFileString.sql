@@ -7,8 +7,8 @@ CREATE PROCEDURE findFileString
    IN search_string VARCHAR(600)
 )
 BEGIN
-   select file_id from files INNER JOIN folders on (files.parent = folders.folder_id) 
-   WHERE owner_email = email_in AND (file_description like search_string or file_name like search_string);
+   SELECT file_id FROM files INNER JOIN folders ON (files.parent = folders.folder_id) 
+   WHERE owner_email = email_in AND (file_description LIKE search_string OR file_name LIKE search_string);
 
 END //
 DELIMITER ;
