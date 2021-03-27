@@ -3,10 +3,12 @@ from flask_restful import Resource, Api, reqparse
 from flask_session import Session
 from helpers import check_if_admin, allowed_file
 import json
+import os
 import pymysql.cursors
 import settings # Our server and db settings, stored in settings.py
 import ssl #include ssl libraries
 import sys
+import werkzeug
 
 class Files(Resource):
     # curl -i -H "Content-Type: application/json" -X GET -c cookie-jar -b cookie-jar -k "https://cs3103.cs.unb.ca:5045/users/tshutty@unb.ca/files?string=%"
@@ -59,18 +61,27 @@ class Files(Resource):
         or not 'file_description' in request.form
         or not 'parent' in request.form
         or not 'file' in request.files 
+        or not 'file' in request.files 
         or request.files['file'] == ''
         or not allowed_file(request.files['file'].filename)):
             return make_response(jsonify({'status': 'invalid request body'}), 400)
 
-        file_name = request.form['file_name']
+        # file_name = request.form['file_name']
         file_description = request.form['file_description']
         parent = request.form['parent']
-        file = request.files['file']
-        print(file)
 
-        filename = secure_filename(file.filename)
-        file.save(os.path.join(app.config['UPLOAD_FOLDER'], filename))
+        parse = reqparse.RequestParser()
+        parse.add_argument('file', type=werkzeug.datastructures.FileStorage, location='files')
+        args = parse.parse_args()
+        image_file = args['file']
+        file_name = image_file.filename
+        print(image_file)
+
+        # file = request.files['file']
+        # print(file)
+
+        # filename = secure_filename(file.filename)
+        # file.save(os.path.join(app.config['UPLOAD_FOLDER'], filename))
 
         dbConnection = pymysql.connect(settings.MYSQL_HOST,
             settings.MYSQL_USER,
@@ -97,5 +108,8 @@ class Files(Resource):
         
         uri = 'https://'+settings.APP_HOST+':'+str(settings.APP_PORT)
         uri = uri+str(request.url_rule)+'/'+str(file_id['LAST_INSERT_ID()'])
+
+        image_file.save(os.path.join(settings.UPLOAD_FOLDER,str(file_id['LAST_INSERT_ID()'])))
+
         return make_response(jsonify( { "uri" : uri } ), 201) # successful resource creation
 

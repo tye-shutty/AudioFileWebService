@@ -1,4 +1,4 @@
-from flask import Flask, jsonify, abort, request, make_response, session
+from flask import Flask, jsonify, abort, request, make_response, safe_join, send_file, session
 from flask_restful import Resource, Api, reqparse
 from flask_session import Session
 from helpers import check_if_admin
@@ -8,7 +8,7 @@ import settings # Our server and db settings, stored in settings.py
 import ssl #include ssl libraries
 import sys
 #/users/<string:email>
-# curl -i -H "Content-Type: application/json" -X GET -c cookie-jar -b cookie-jar -k https://cs3103.cs.unb.ca:5045/users/tshutty@unb.ca/files/4
+# curl -i -H "Content-Type: application/json" -X GET -c cookie-jar -b cookie-jar -k "https://cs3103.cs.unb.ca:5045/users/tshutty@unb.ca/files/4?stream=false"
 class File(Resource):
     def get(self, email, file):
         if 'email' not in session:
@@ -17,6 +17,8 @@ class File(Resource):
         check_if_admin()
         if session['email'] != email and session['admin_status'] == 0:
             return make_response(jsonify({'status': 'not logged in as '+email+' and not admin'}), 403)
+
+        stream = request.args.get('stream', 'false')
 
         dbConnection = pymysql.connect(
             settings.MYSQL_HOST,
@@ -38,7 +40,17 @@ class File(Resource):
             dbConnection.close()
         print(row)
         if(row is not None and row['owner_email'] == session['email']):
-            return make_response(jsonify({'file': row}), 200) # turn set into json and return it
+            if stream == 'true':
+                filepath = safe_join(settings.UPLOAD_FOLDER, str(row["file_id"]))
+                response = send_file(
+                    filename_or_fp=filepath,
+                    mimetype="application/octet-stream",
+                    as_attachment=True,
+                    attachment_filename=row["file_name"]
+                )
+                return response
+            else:
+                return make_response(jsonify({'file': row}), 200) # turn set into json and return it
         else:
             return make_response(jsonify({'status': 'not owner'}), 403)
 
