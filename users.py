@@ -9,7 +9,7 @@ import ssl #include ssl libraries
 import sys
 
 class Users(Resource):
-    # GET: Only for admins
+    # GET: Only for admins, returns non admins
     # curl -i -H "Content-Type: application/json" -X GET -c cookie-jar -b cookie-jar -k https://cs3103.cs.unb.ca:5045/users
     def get(self):
 
@@ -43,13 +43,16 @@ class Users(Resource):
             dbConnection.close()
         return make_response(jsonify({'users': rows}), 200) # turn set into json and return it
 
+    #email must match unb email to be able to access restricted resources
+    # curl -i -H "Content-Type: application/json" -X POST -d '{"email": "tshutty@unb.ca"}' -c cookie-jar -b cookie-jar -k https://cs3103.cs.unb.ca:5045/users
     def post(self):
-        # curl -i -H "Content-Type: application/json" -X POST -d '{"email": "mar20@2:19pm"}' -c cookie-jar -b cookie-jar -k https://cs3103.cs.unb.ca:5045/users
-
         if not request.json or not 'email' in request.json:
             return make_response(jsonify({'status': 'no request'}), 400)
 
         email = request.json['email']
+        print('len=',len(email))
+        if len(email) < 1 or len(email) > 200:
+            return make_response(jsonify({'status': 'email must be > 1 < 200 char'}), 400)
 
         dbConnection = pymysql.connect(settings.MYSQL_HOST,
             settings.MYSQL_USER,
@@ -64,11 +67,10 @@ class Users(Resource):
             cursor.callproc(sql,sqlArgs) # stored procedure, with arguments
             # row = cursor.fetchone()
             dbConnection.commit() # database was modified, commit the changes
-        except pymysql.err.IntegrityError:
-            return make_response(jsonify({'status': 'account exists'}), 409)
-
-        except:
-            abort(500) # Nondescript server error
+        except pymysql.err.InternalError as e:
+            code, msg = e.args
+            print('sql error')
+            return make_response(jsonify({'status': msg}), 409)
         finally:
             cursor.close()
             dbConnection.close()

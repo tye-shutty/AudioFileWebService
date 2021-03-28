@@ -9,8 +9,8 @@ import settings # Our server and db settings, stored in settings.py
 import ssl #include ssl libraries
 import sys
 #/users/<string:email>
-# curl -i -H "Content-Type: application/json" -X GET -c cookie-jar -b cookie-jar -k "https://cs3103.cs.unb.ca:5045/users/tshutty@unb.ca/files/4?stream=false"
 class File(Resource):
+# curl -i -H "Content-Type: application/json" -X GET -c cookie-jar -b cookie-jar -k "https://cs3103.cs.unb.ca:5045/users/tshutty@unb.ca/files/4?stream=false"
     def get(self, email, file):
         if 'email' not in session:
             return make_response(jsonify({'status': 'not logged in'}), 403)
@@ -40,7 +40,9 @@ class File(Resource):
             cursor.close()
             dbConnection.close()
         print(row)
-        if(row is not None and row['owner_email'] == session['email']):
+        if row is None:
+            return make_response(jsonify({'status': 'no folder'}), 404)
+        if(row['owner_email'] == session['email'] or session['admin_status'] == 1):
             if stream == 'true':
                 filepath = safe_join(settings.UPLOAD_FOLDER, str(row["file_id"]))
                 response = send_file(
@@ -54,7 +56,6 @@ class File(Resource):
                 return make_response(jsonify({'file': row}), 200) # turn set into json and return it
         else:
             return make_response(jsonify({'status': 'not owner'}), 403)
-
 
     # signin
     # curl -i -H "Content-Type: application/json" -X POST -d '{"username": "tshutty", "password": "..."}' -c cookie-jar -b cookie-jar -k https://cs3103.cs.unb.ca:5045/signin
@@ -108,16 +109,19 @@ class File(Resource):
             abort(500) # Nondescript server error
         finally:
             cursor.close()
-        print(row)
+        print('row=',row)
 
-        if(row is not None and row['owner_email'] == session['email']):
+        if(row is None):
+            dbConnection.close()
+            return make_response(jsonify({'status':'No file'}), 404)
+        if(row['owner_email'] == session['email']  or session['admin_status'] == 1):
             sql = 'setFile'
             try:
                 cursor = dbConnection.cursor()
-                cursor.callproc(sql, [file, name, description, plays_count, last_played, parent])
+                cursor.callproc(sql, [file, name, description, plays_count, last_played, parent, email])
                 dbConnection.commit() #NEEDED for updates and inserts
             except pymysql.err.InternalError as e:
-                return make_response(jsonify({'status':'no change to '+email}), 200)
+                return make_response(jsonify({'status':str(e)}), 200)
             except:
                 abort(500) # Nondescript server error
             finally:
@@ -159,7 +163,7 @@ class File(Resource):
         if(row is None):
             dbConnection.close()
             return make_response(jsonify({'status':'No file'}), 200)
-        if(row['owner_email'] == session['email']):
+        if(row['owner_email'] == session['email']  or session['admin_status'] == 1):
             sql = 'deleteFile'
             try:
                 cursor = dbConnection.cursor()

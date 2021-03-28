@@ -8,8 +8,8 @@ import settings # Our server and db settings, stored in settings.py
 import ssl #include ssl libraries
 import sys
 #/users/<string:email>
-# curl -i -H "Content-Type: application/json" -X GET -c cookie-jar -b cookie-jar -k https://cs3103.cs.unb.ca:5045/users/tshutty@unb.ca/folders/4
 class Folder(Resource):
+# curl -i -H "Content-Type: application/json" -X GET -c cookie-jar -b cookie-jar -k https://cs3103.cs.unb.ca:5045/users/tshutty@unb.ca/folders/4
     def get(self, email, folder):
         if 'email' not in session:
             return make_response(jsonify({'status': 'not logged in'}), 403)
@@ -37,7 +37,9 @@ class Folder(Resource):
             cursor.close()
             dbConnection.close()
         print(row)
-        if(row is not None and row['owner_email'] == session['email']):
+        if row is None:
+            return make_response(jsonify({'status': 'no folder'}), 404)
+        elif(row['owner_email'] == session['email'] or session['admin_status'] == 1):
             return make_response(jsonify({'folder': row}), 200) # turn set into json and return it
         else:
             return make_response(jsonify({'status': 'not owner'}), 403)
@@ -78,14 +80,16 @@ class Folder(Resource):
             cursor.close()
         print(row)
 
-        if(row is not None and row['owner_email'] == session['email']):
+        if row is None:
+            return make_response(jsonify({'status': 'no folder'}), 404)
+        if(row['owner_email'] == session['email'] or session['admin_status'] == 1):
             sql = 'setFolder'
             try:
                 cursor = dbConnection.cursor()
                 cursor.callproc(sql, [folder, name, description])
                 dbConnection.commit() #NEEDED for updates and inserts
             except pymysql.err.InternalError as e:
-                return make_response(jsonify({'status':'no change to '+email}), 200)
+                return make_response(jsonify({'status':str(e)}), 200)
             except:
                 abort(500) # Nondescript server error
             finally:
@@ -95,7 +99,7 @@ class Folder(Resource):
             return make_response(jsonify({'status':'folder updated'}), 200)
         else:
             dbConnection.close()
-            return make_response(jsonify({'status': 'not owner'}), 403)
+            return make_response(jsonify({'status': 'not owner and not admin'}), 403)
     # curl -i -H "Content-Type: application/json" -X DELETE -c cookie-jar -b cookie-jar -k https://cs3103.cs.unb.ca:5045/users/tshutty@unb.ca/folders/4
     def delete(self, email, folder):
 
@@ -127,7 +131,9 @@ class Folder(Resource):
         if(row is None):
             dbConnection.close()
             return make_response(jsonify({'status':'No folder'}), 200)
-        if(row['owner_email'] == session['email']):
+        
+        print('as=',session['admin_status'])
+        if(row['owner_email'] == session['email'] or session['admin_status'] == 1):
             sql = 'deleteFolder'
             try:
                 cursor = dbConnection.cursor()

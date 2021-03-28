@@ -8,8 +8,8 @@ import settings # Our server and db settings, stored in settings.py
 import ssl #include ssl libraries
 import sys
 #/users/<string:email>
-#curl -i -H "Content-Type: application/json" -X GET -c cookie-jar -b cookie-jar -k https://cs3103.cs.unb.ca:5045/users/tshutty@unb.ca
 class User(Resource):
+    #curl -i -H "Content-Type: application/json" -X GET -c cookie-jar -b cookie-jar -k https://cs3103.cs.unb.ca:5045/users/tshutty@unb.ca
     def get(self, email):
         if 'email' not in session:
             return make_response(jsonify({'status': 'not logged in'}), 403)
@@ -29,16 +29,20 @@ class User(Resource):
         sql = 'getUser'
         try:
             cursor = dbConnection.cursor()
-            cursor.callproc(sql, [session['email']]) # stored procedure, arguments
+            cursor.callproc(sql, [email]) # stored procedure, arguments
             row = cursor.fetchone()
         except:
             abort(500) # Nondescript server error
         finally:
             cursor.close()
             dbConnection.close()
+        if row is None:
+            return make_response(jsonify({'status': 'no user'}), 404)
         return make_response(jsonify({'user': row}), 200) # turn set into json and return it
-
+    #Change email
     # curl -i -H "Content-Type: application/json" -X PATCH -d '{"email":"dum@poopie"}' -c cookie-jar -b cookie-jar -k https://cs3103.cs.unb.ca:5045/users/tshutty@unb.ca
+    #Change email back:
+    # curl -i -H "Content-Type: application/json" -X PATCH -d '{"email":"tshutty@unb.ca"}' -c cookie-jar -b cookie-jar -k https://cs3103.cs.unb.ca:5045/users/dum@poopie
     def patch(self, email):
 
         if 'email' not in session:

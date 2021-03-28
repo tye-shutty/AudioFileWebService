@@ -35,7 +35,7 @@ class Files(Resource):
         sql = 'findFileString'
         try:
             cursor = dbConnection.cursor()
-            cursor.callproc(sql, [session['email'],string])
+            cursor.callproc(sql, [email,string])
             rows = cursor.fetchall() # get all the results
         except:
             abort(500) # Nondescript server error
@@ -56,6 +56,10 @@ class Files(Resource):
 
         if 'email' not in session:
             return make_response(jsonify({'status': 'not logged in'}), 403)
+            
+        check_if_admin()
+        if session['email'] != email and session['admin_status'] == 0:
+            return make_response(jsonify({'status': 'not logged in as '+email+' and not admin'}), 403)
 
         if (not request.form
         or not 'file_description' in request.form
@@ -93,7 +97,7 @@ class Files(Resource):
         sql = 'addFile'
         try:
             cursor = dbConnection.cursor()
-            sqlArgs = (file_name, file_description, parent, session['email']) # Must be a collection
+            sqlArgs = (file_name, file_description, parent, email) # Must be a collection
             cursor.callproc(sql,sqlArgs) # stored procedure, with arguments
             file_id = cursor.fetchone()
             dbConnection.commit() # database was modified, commit the changes
@@ -107,7 +111,7 @@ class Files(Resource):
             dbConnection.close()
         
         uri = 'https://'+settings.APP_HOST+':'+str(settings.APP_PORT)
-        uri = uri+str(request.url_rule)+'/'+str(file_id['LAST_INSERT_ID()'])
+        uri = uri+'/users/'+email+'/'+str(file_id['LAST_INSERT_ID()'])
 
         image_file.save(os.path.join(settings.UPLOAD_FOLDER,str(file_id['LAST_INSERT_ID()'])))
 

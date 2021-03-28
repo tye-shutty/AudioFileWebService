@@ -74,7 +74,6 @@ class SignIn(Resource):
     # DELETE: Check Cookie data with Session data
     #
     # curl -i -H "Content-Type: application/json" -X DELETE -c cookie-jar -b cookie-jar -k https://cs3103.cs.unb.ca:5045/signin
-
     def delete(self):
         # print('sid=',session.sid,'session=',session)
         if 'email' in session:
