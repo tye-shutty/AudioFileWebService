@@ -33,7 +33,7 @@ class Folders(Resource):
         sql = 'findFolderString'
         try:
             cursor = dbConnection.cursor()
-            cursor.callproc(sql, [session['email'],string]) # stored procedure, no arguments
+            cursor.callproc(sql, [email,string]) # stored procedure, no arguments
             rows = cursor.fetchall() # get all the results
         except:
             abort(500) # Nondescript server error
@@ -56,6 +56,10 @@ class Folders(Resource):
         if 'email' not in session:
             return make_response(jsonify({'status': 'not logged in'}), 403)
 
+        check_if_admin()
+        if session['email'] != email and session['admin_status'] == 0:
+            return make_response(jsonify({'status': 'not logged in as '+email+' and not admin'}), 403)
+            
         if (not request.json or not 'folder_name' in request.json or not 'folder_description' in request.json):
             return make_response(jsonify({'status': 'invalid request body'}), 400)
 
@@ -73,7 +77,7 @@ class Folders(Resource):
         sql = 'addFolder'
         try:
             cursor = dbConnection.cursor()
-            sqlArgs = (folder_name, folder_description, parent, session['email']) # Must be a collection
+            sqlArgs = (folder_name, folder_description, parent, email) # Must be a collection
             cursor.callproc(sql,sqlArgs) # stored procedure, with arguments
             folder_id = cursor.fetchone()
             dbConnection.commit() # database was modified, commit the changes
@@ -87,6 +91,6 @@ class Folders(Resource):
         print('folder_id=',folder_id)
         
         uri = 'https://'+settings.APP_HOST+':'+str(settings.APP_PORT)
-        uri = uri+str(request.url_rule)+'/'+str(folder_id['LAST_INSERT_ID()'])
+        uri = uri+'/users/'+email+'/'+str(folder_id['LAST_INSERT_ID()'])
         return make_response(jsonify( { "uri" : uri } ), 201) # successful resource creation
 
