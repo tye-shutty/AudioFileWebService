@@ -1,3 +1,4 @@
+/* This Sql file finds a String about the audio file (like name or description) */
 DELIMITER //
 DROP PROCEDURE IF EXISTS findFileString //
 CREATE PROCEDURE findFileString
