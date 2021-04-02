@@ -1,4 +1,257 @@
 <!DOCTYPE html>
-<body>
-    <p>Work in progress</p>
+<!-- https://getbootstrap.com/docs/4.4/utilities/flex/ -->
+<html>
+  <head>
+    <title>Audīsne mē?</title>
+  </head>
+  <body>
+    <div id="app"> <!--class="container-fluid"-->
+      <div > <!--class="jumbotron jumbotron-fluid text-center"-->
+        <div class="horizontal">
+          <div class="nav">
+            <h1>Audīsne mē?</h1>
+            <p><em>Upload, play, and download audio files</em></p>
+          </div>
+          <!-- Options available once authenticated -->
+          <div v-if="authenticated" class="nav"> <!--class="text-center"-->
+            <!-- user info -->
+            <button type="button" class="btn" 
+            v-on:click="logout()">
+            Logout {{email}}</button>
+            <p v-if="admin_status.user.admin_status===1">You are an admin</p>
+          </div>
+          <div class="nav">
+            <button type="button" class="btn" 
+            v-on:click="info = !info;about_icon = info ? '⇊' : '⇈';">
+            About {{about_icon}}</button>
+          </div>
+          <div class="nav" v-if="authenticated">
+            <input type="text" name="search" v-model="search" 
+            placeholder="search" 
+            v-on:keyup.enter="getFolders();getFiles();searched=true;this.search = '';pauseAll();show_folder_description='';"/>
+            <button type="button" class="btn" 
+            v-on:click="getFolders();getFiles();searched=true;this.search = '';pauseAll();show_folder_description='';">
+            Search</button>
+          </div>
+          <div class="nav">
+            <button v-if="authenticated" type="button" class="btn text-danger" 
+            v-on:click="deleteUser()">
+            Delete {{target_user}}'s Account</button>
+          </div>
+        </div>
+        <div v-if="info===true">
+          <p>This site currently works on Firefox with mp3 and ogg files of less than 2 MB in size.
+            You can play multiple files at the same time! You can organize your 
+            files into folders. The volume bar is exponential because I have often fiddled with 
+            volume controls in the past where the volume was way too loud and I had difficultly making the volume 1% not 2%.
+            
+            The search function uses SQL rules, e.g. % is a wildcard. If this site is running on the UNB computer, it may not be
+            able to serve many files, it may serve them slowly, and it may cause the server to freeze. 
+            Just test with files of 1-2 MB.
+
+            There is an account called "admin" that you can demo. The password is anything longer than an empty string.
+            This site is designed to be run on Firefox, Chrome and other browsers may behave unexpectedly.
+          </p>
+          <p>
+            This site was designed for cs3103, UNB in 2021 by Tye Shutty. Audīsne mē? is Latin for "Are you listening to me?"
+          </p>
+        </div>
+      <!-- login -->
+      <div v-if="!authenticated" > <!--class="form-group text-center"-->
+        <input type="text" name="username" 
+        v-model="input.username" placeholder="Username" />
+        <input type="password" name="password" 
+        v-model="input.password" placeholder="Password"
+        v-on:keyup.enter="login()"/>
+        <button class="btn" type="button" 
+        v-on:click="login()">Login</button>
+      </div>
+      <div v-if="authenticated">
+        <button v-if="show_folder != 0 || searched===true || target_user !== email" type="button" class="btn"  
+        v-on:click="searched=false;search='';getFolders();show_folder=0;pauseAll();">
+        Return to Home Directory</button>
+        <div v-if="admin_status.user.admin_status===1 && show_folder===0 && searched===false">
+          <h2>Select a User:</h2>
+          <input type="text" name="user" v-model="target_user" placeholder="user"
+          v-on:keyup.enter="getFolders()"/>
+          <button class="btn" type="button" 
+          v-on:click="getFolders();">Select</button>
+          <button class="btn" type="button" 
+          v-on:click="setAdmin(1)">Make admin</button>
+          <button class="btn" type="button" 
+          v-on:click="getUsers();">List Users</button>
+          <div v-if="toggle_users===true" v-for="user in users">
+            <p>{{user.email}}</p>
+          </div>
+        </div>
+
+        <h2>{{getHeaderName()}}</h2>
+        <p v-if="searched!==true">{{show_folder_description}}</p>
+        <div class="vertical"><!--id="schoolsList">-->
+          <h3>Folders:</h3>
+          <!-- Create folder -->
+          <button  v-if="searched===false && add_folder_complete===true" type="button" class="btn" 
+          v-on:click="display_add_folder()">
+          Add folder {{add_folder_icon}}
+          </button>
+          <div v-if="add_folder===true">
+            <input type="text" name="name" 
+            v-model="folder_input.name" 
+            placeholder="folder name"/>
+            <input type="text" name="description" 
+            v-model="folder_input.description" 
+            placeholder="folder description" />
+            <button type="button" class="btn" 
+            v-on:click="add_folder=false;addFolder();add_folder_complete=false;">
+            Confirm</button>
+          </div>
+          <ul class="horizontal" > <!--class="list-group"-->
+            <div v-for="folder in folders" :id="'folder' + folder.folder_id">
+              <li v-if="folder.parent===show_folder || searched ===true" > <!--class="list-group-item col-7 mx-auto"-->
+                <div > <!-- class="d-flex w-100 justify-content-between"--> <!-- v-bind:id="folder"-->
+                  <div > <!--class="d-flex flex-column bd-highlight mb-3"-->
+                    <div > <!--class="p-2 bd-highlight"-->
+                      <h4 class="h3mono">{{getFolderName(folder.folder_id, true)}}</h4>
+                      <p class="pmono">{{folder.folder_description.substring(0,30)}}</p>
+                      <div> <!--class="btn-group-xs"-->
+                        <button class="utilityBtn green" 
+                        v-on:click="show_folder=folder.folder_id;show_folder_name=folder.folder_name;
+                        show_folder_description=folder.folder_description;getFiles()">
+                        👁 View</button>
+                        <button class="utilityBtn green" 
+                        v-on:click="edit_folder=folder.folder_id;set_folder=!set_folder">
+                        ✎ Modify</button>
+                        <button class="utilityBtn text-danger" 
+                        v-on:click="deleteFolder(folder.folder_id)"
+                        >x Delete</button>
+                      </div>
+                    </div>
+                    <div>
+                      <div v-if="set_folder===true && edit_folder===folder.folder_id">
+                        <input type="text" 
+                        name="name" v-model="folder_input.name" 
+                        placeholder="folder name" />
+                        <input type="text" 
+                        name="description" v-model="folder_input.description" 
+                        placeholder="folder description" />
+                        <a type="button" :href="'#folder' + folder.folder_id" class="btn" 
+                        v-on:click="setFolder();set_folder=false;">
+                        Update folder</a>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </li>
+            </div>
+          </ul>
+        </div>
+        <hr>
+        <div  class="vertical" v-if="show_folder != 0 || searched===true">
+          <h3 class="test">Files:</h3>
+          <!-- Create folder -->
+          <p v-if="add_file_complete===false">Upload in progress ...</p>
+          <button v-if="searched===false && add_file_complete===true" type="button" class="btn" 
+          v-on:click="display_add_file()">
+          Add file {{add_file_icon}}</button>
+          <div v-if="add_file===true">
+            <input type="file" id="file" ref="file" accept=".mp3,.ogg"
+            v-on:change="handleFileUpload()"/>
+            <input type="text" name="description" 
+            v-model="file_input.description" 
+            placeholder="file description" />
+            <button type="button" class="btn" 
+            v-on:click="add_file=false;addFile();add_file_complete=false;">
+            Confirm</button>
+          </div>
+
+          <ul class="horizontal">
+            <div v-for="file in files" :id="'file' + file.folder_id">
+              <li v-if="file.parent===show_folder || searched === true">  <!--class="list-group-item col-7 mx-auto"-->
+                <div >
+                    <div > <!--class="p-2 bd-highlight"-->
+                      <h4 class="h3mono">{{getFileName(file.file_id,true)}}</h4>
+                      <!-- My audio
+                      <audio controls>
+                        <source :src="serviceURL+'/users/'+email+'/files/'+file.file_id+'?stream=true'" type="audio/mpeg">   
+                     </audio> -->
+                      <button  class="utilityBtn text-primary" 
+                      v-on:click="play(file.file_id, file)">
+                      ⏯ {{file.paused_proposition}}</button>
+                      <button class="utilityBtn green" 
+                      v-on:click="show_file = (show_file!=file.file_id)? file.file_id : null; set_file=null;">
+                      … Data and Options</button>
+                      <div v-if="show_file===file.file_id">
+                        <p>name: {{file.file_name}}</p>
+                        <p>description: {{file.file_description}}</p>
+                        <p>last played: {{file.last_played_locale}}</p>
+                        <p>times played: {{file.times_played}}</p>
+                        <p>upload date: {{file.upload_date_locale}}</p>
+                        <div class="btns">
+                          <button class="utilityBtn green" 
+                          v-on:click="set_file=!set_file;edit_file=file.file_id;">
+                          ✎ Modify</button>
+                          <a class="utilityBtn green" type="button"
+                          :href='serviceURL+"/users/"+email+"/files/"+file.file_id+"?stream=true"'
+                          :download="getFileName(file.file_id, false)">
+                          ⇩ Download</a>
+                          <button class="utilityBtn text-danger" 
+                          v-on:click="deleteFile(file.file_id)">
+                          x Delete</button>
+                        </div>
+                        <div>
+                          <div v-if="set_file===true && edit_file===file.file_id">
+                            <input type="text" name="name" v-model="file_input.name" 
+                            placeholder="file name" />
+                            <input type="text" name="description" v-model="file_input.description" 
+                            placeholder="file description" />
+                            <button type="button" class="btn" 
+                            v-on:click="setFile(file.file_id);set_file=false;">Update file</button>
+                          </div>
+                        </div>
+                      </div>
+                      <div>
+                        <!-- <audio controls>
+                          <source v-bind:src="'/static/uploads/' + file.file_id" type="audio/mpeg">
+                          <source v-bind:src="'/static/uploads/' + file.file_id" type="audio/ogg">
+                          <source v-bind:src="'/static/uploads/' + file.file_id" type="audio/wav">
+                        Your browser does not support the audio element.
+                        </audio> -->
+                        seek: <input v-on:change="seek(file.file_id, file.seek_percent)" 
+                        v-model="file.seek_percent"
+                        type="range" min="0" max="100" 
+                        class="slider" id="myRange">
+
+                        <!-- v-on:seeked="seek(file.file_id,file.seek_percent)" -->
+                        <!-- <p :key="componentKey2" id="event">{{seek_percent}}</p> -->
+                      </div>
+                      <div>
+                        exponential volume: <input v-on:change="setVolume(file.file_id, file)" 
+                        v-model="file.volume"
+                        type="range" min="0" max="49" 
+                        class="slider" id="myRange">
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </li>
+            </div>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </div>
+  <!-- VUE -->
+  <script src="https://cdn.jsdelivr.net/npm/vue/dist/vue.js"></script>
+  <!-- Local Deps -->
+  <script type="text/javascript" src="/static/app.js" ></script>
+  <!-- AXIOS -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/axios/0.18.0/axios.min.js"></script>
+  <!-- AJAX -->
+  <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
+  <!-- Styles -->
+  <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.1.3/css/bootstrap.min.css"/>
+  <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.1.3/js/bootstrap.min.js"></script>
+  <link  rel="stylesheet" href="/static/schools.css"/>
+  
 </body>
+</html>

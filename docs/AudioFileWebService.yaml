@@ -2,7 +2,7 @@ openapi: 3.0.0
 info:
   title: AudioFileWebService
   description: The file should include all elements that are necessary for the project, including Endpoint(s), HTTP commands, queries, requests and responses, including schemas and examples. indicate security when appropriate.
-  version: '0.0.3'
+  version: '0.1.0'
 
 servers: 
  - url: https://cs3103.cs.unb.ca/tshutty/project_api
@@ -17,6 +17,10 @@ tags:
     
 #password creation, management, and authentication will be handled by UNB's server
 #email is the user ID. If a path has {email} in it, then only that means each user can only access the resources associated with them, not other users. Except admins, which can use all {email} path possibilities.
+#cd ~/codebase/swagger-editor-master
+#sudo npm run dev
+#open http://0.0.0.0:3200
+
 
 paths:
   /users:
@@ -43,45 +47,13 @@ paths:
       summary: Returns a list of user emails. Does not include admins.
       responses:
         '200':
-          description: A JSON array of emails
+          description: A JSON object of emails
           content:
               application/json:
                 schema:
                   $ref: '#/components/schemas/emails'
-        '401': 
-          description: Unauthorized
-  /unique:
-    get:
-      tags:
-        - logged out users
-      summary: returns 204 if query string is not an existing email. Helps when signing up. This resource is not restricted like /users/{email} or admins/{email}/users
-      parameters:
-        - name: string
-          in: query 
-          required: true
-          schema:
-            type: string 
-      responses:
-        '204':
-          description: Not in use
-        '409':
-          description: User email already in use
-        '400':
-          description: Invalid email
-  /admins:
-    get:
-      tags:
-        - logged out users
-      summary: Returns a list of admin emails.
-      responses:
-        '200':
-          description: A JSON array of emails
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/emails'
-        '400':
-           description: failed request
+        '403':
+          description: Not logged in or not admin
   /users/{email}:
     patch:
       tags:
@@ -103,10 +75,12 @@ paths:
       responses:
         '204':
           description: email changed
-        '409':
-          description: User email already in use
+        '200':
+          description: No change to email
         '400':
           description: Invalid email
+        '403':
+          description: Not logged in as user or not admin
     get:
       tags:
         - logged in users
@@ -120,23 +94,29 @@ paths:
       responses:
         '200':
           description: User found and returned
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/user'
         '400':
           description: Invalid email
+        '403':
+          description: Not logged in as user or not admin
     delete:
       tags:
         - logged in users
-      description: Delete a user and all associated folders and files
+      description: Delete a user but not all associated folders and files
       parameters:
         - name: email
           in: path
           required: true
           schema:
-            type: string
+            $ref: '#/components/schemas/email'
       responses:
         '200':
-          description: Successfully deleted a user
-        '404':
-          description: User not found
+          description: Successfully deleted a user or user not found
+        '403':
+          description: Not logged in as user or not admin
   /users/{email}/authorize:
     patch:
       tags:
@@ -166,6 +146,8 @@ paths:
           description: Invalid admin status variable
         '404':
           description: Email not found
+        '403':
+          description: Not logged in as user or not admin
   /users/{email}/folders:
     post:
       tags:
@@ -182,12 +164,14 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/modified_folder_info'
+              $ref: '#/components/schemas/created_folder_info'
       responses:
         '201':
           description: Created
         '400':
           description: Invalid parameters
+        '403':
+          description: Not logged in as user or not admin
     get:
       tags:
         - logged in users
@@ -209,9 +193,9 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/numbers'
-        '404':
-          description: Invalid email
+                $ref: '#/components/schemas/folder_ids'
+        '403':
+          description: Not logged in as user or not admin
   /users/{email}/folders/{folder_id}:
     patch:
       tags:
@@ -239,8 +223,14 @@ paths:
       responses:
         '204':
           description: Updated
+        '200':
+          description: No change
         '400':
-          description: Invalid parameters
+          description: Invalid request
+        '403':
+          description: Not logged in as user or not admin
+        '404':
+          description: No user folder
     get:
       tags:
         - logged in users
@@ -267,6 +257,10 @@ paths:
                 $ref: '#/components/schemas/folder_info'
         '400':
           description: Invalid parameters
+        '403':
+          description: Not logged in as user or not admin
+        '404':
+          description: No user folder
     delete:
       tags:
         - logged in users
@@ -286,9 +280,9 @@ paths:
             type: string
       responses:
         '200':
-          description: Successfully deleted a folder
-        '404':
-          description: Folder not found
+          description: Successfully deleted a folder or no folder
+        '403':
+          description: Not logged in as user or not admin
   /users/{email}/files:
     post:
       tags:
@@ -311,6 +305,8 @@ paths:
           description: File uploaded and created
         '400':
           description: Invalid parameters
+        '403':
+          description: Not logged in as user or not admin
     get:
       tags:
         - logged in users
@@ -321,7 +317,7 @@ paths:
           required: true 
           schema:
             type: string
-        - name: search_string
+        - name: string
           in: query
           required: false
           schema:
@@ -332,9 +328,9 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/numbers'
-        '400':
-          description: Invalid email
+                $ref: '#/components/schemas/file_ids'
+        '403':
+          description: Not logged in as user or not admin
   /users/{email}/files/{file_id}:
     patch:
       tags:
@@ -362,10 +358,14 @@ paths:
       responses:
         '204':
           description: File record modified
+        '200':
+          description: File record unchanged
         '400':
           description: Invalid parameters
         '404':
           description: File not found
+        '403':
+          description: Not logged in as user or not admin
     get:
       tags:
         - logged in users
@@ -384,20 +384,24 @@ paths:
           schema:
             type: string
         - name: stream
-          in: path
+          in: query
           required: false 
           description: true or false
           schema:
             $ref: '#/components/schemas/boolean'
       responses:
         '200':
-          description: Resource returned
+        # swagger does not allow for describing multiple output types, although many people think this is an ok thing to do
+        # https://github.com/OAI/OpenAPI-Specification/issues/270
+          description: If stream=true, returns the file, else returns the schema described below
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/returned_file_info'
         '404':
           description: Invalid parameters
+        '403':
+          description: Not logged in as user or not admin
     delete:
       tags:
         - logged in users
@@ -418,10 +422,12 @@ paths:
       responses:
         '204':
           description: Successfully deleted a file
-        '404':
-          description: File not found
+        '200':
+          description: No file
+        '403':
+          description: Not logged in as user or not admin
 
-  /login:
+  /signin:
     post:
       tags:
         - logged out users
@@ -437,6 +443,8 @@ paths:
           description: successfully logged in
         '200':
           description: already logged in
+        '400':
+          description: bad request
         '403':
           description: access denied
     get:
@@ -455,125 +463,187 @@ paths:
       responses:
         '200':
           description: successfully logged out
-        '400':
-          description: bad request
          
 components:
   schemas:
     email:
       type: string
     emails:
-      type: array
-      items:
-        type: string
-      example: [a@b.c, example@email.com]
+      type: object
+      properties:
+        users:
+          type: array
+          items:
+            type: object
+            properties:
+              email:
+                type: string
+      example: 
+        users:
+          - email: lucky
+          - email: p2@domain.com
+        
+    folder_ids:
+      type: object
+      properties:
+        folders:
+          type: array
+          items:
+            type: object
+            properties:
+              folder_id:
+                type: number
+      example: 
+        folders:
+          - folder_id: 4
+          - folder_id: 5
+    file_ids:
+      type: object
+      properties:
+        folders:
+          type: array
+          items:
+            type: object
+            properties:
+              file_id:
+                type: number
+      example: 
+        files:
+          - file_id: 4
+          - file_id: 5
+      
+    user:
+      type: object
+      properties:
+        user:
+          type: object
+          properties:
+            admin_status:
+              type: number
+            email:
+              type: string
+      example: {"users": [{"email": "lucky" }, {"email": "p2@domain.com"}]}
     boolean:
       type: boolean
-    numbers:
-      type: array 
-      items:
-        type: number
-      example: [1, 4, 6]
     modified_folder_info:
       type: object
       properties:
         name:
           type: string
-        parent:
-          type: number
         description:
           type: string 
       example:
         name: rock music
-        parent: 12
         description: music made out of rocks
+    created_folder_info:
+      type: object
+      properties:
+        folder_name:
+          type: string
+        parent:
+          type: number
+        folder_description:
+          type: string 
+      example:
+        folder_name: rock music
+        parent: 1
+        folder_description: music made out of rocks
     folder_info:
       type: object 
       properties:
-        file_ids:
-          type: array 
-          items:
-            type: number 
-        subfolder_ids:
-          type: array 
-          items:
-            type: number 
-        folder_name:
-          type: string 
-        folder_description:
-          type: string
-      example:
-        file_ids: [0, 1, 12, 13, 101]
-        subfolder_ids: [0, 3, 66]
-        folder_name: rock music
-        folder_description: music made out of rocks
+        folder:
+          type: object
+          properties:
+            folder_description:
+              type: string
+            folder_id:
+              type: number
+            folder_name:
+              type: string 
+            owner_email:
+              type: string 
+            parent:
+              type: number 
+      example: 
+        folder:
+          folder_description: pink
+          folder_id: 4
+          folder_name: hotdogs
+          owner_email: tshutty@unb.ca
+          parent: 0
     new_file_info:
       type: object
       properties:
-        name:
+        file_description:
           type: string
-        audio:
+        parent:
+          type: number
+        file:
           type: string
           format: binary
-        folder:
-          type: number
-        description:
-          type: string
       example:
-        name: Rick Sawyer
-        audio: 10101010101000001...
-        folder: 4
         description: A song by Rush
+        file: RickSawyer.mp3
+        folder: 4
     modified_file_info:
       type: object
       properties:
         name:
           type: string
-        folder:
-          type: number
         description:
           type: string
-        num_plays:
+        plays_count:
           type: number
-        play_time:
+        last_played:
           type: string
+        parent:
+          type: number
       example:
-        name: Rick Sawyer
-        folder: 22
-        description: A song by Rush
-        num_plays: 1
-        last_play_time: "2018-12-10T13:45:00.000Z"
+        name: song2.mp3
+        description: Blur
+        plays_count: 3000
+        last_played: '2021-03-26 18:32:48'
+        parent: 4
     returned_file_info:
-      type: object
+      type: object 
       properties:
-        name:
-          type: string
-        audio_path:
-          type: string
-        folder_id:
-          type: number
-        file_description:
-          type: string
-        num_plays:
-          type: number
-        last_play_time:
-          type: string
+        file:
+          type: object
+          properties:
+            file_description:
+              type: string
+            file_id:
+              type: number
+            file_name:
+              type: string 
+            owner_email:
+              type: string 
+            parent:
+              type: number
+            times_played:
+              type: number
+            upload_date:
+              type: string
       example:
-        name: Rick Sawyer
-        audio_path: https://host.domain/folder/path/to/song/RickSawyer.extension
-        folder_id: 22
-        file_description: A song by Rush
-        num_plays: 1
-        last_play_time: 2018-12-10T13:45:00.000Z
+        file:
+          file_description: '5:00'
+          file_id: 4
+          file_name: myfile.txt
+          last_played: 'Sun, 28 Mar 2021 19:26:07 GMT'
+          owner_email: tshutty@unb.ca
+          parent: 4
+          times_played: 0
+          upload_date: 'Sun, 28 Mar 2021 19:26:07 GMT'
+        
     credentials:
       type: object
       properties:
-        cs_username:
+        username:
           type: string
         password:
           type: string
       example:
-        cs_username: tshutty
+        username: tshutty
         password: gorilla
             
   

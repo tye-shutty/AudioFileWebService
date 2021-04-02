@@ -1,2 +1,20 @@
-source db/createFiles.sql; source db/addFolder.sql; source db/addUser.sql; source db/createFolders.sql; source db/createUsers.sql; source db/deleteFolder.sql; source db/deleteUser.sql; source db/findFolderString.sql; source db/getFolder.sql; source db/getUser.sql; source db/getUsers.sql; source db/setFolder.sql; source db/setUser.sql; source db/addFile.sql; source db/deleteFile.sql; source db/findFileString.sql; source db/populateTables.sql; source db/getFile.sql; source db/setFile.sql;
+source db/createFiles.sql; source db/addFolder.sql; source db/addUser.sql; source db/createFolders.sql; source db/createUsers.sql; source db/deleteFolder.sql; source db/deleteUser.sql; source db/findFolderString.sql; source db/getFolder.sql; source db/getUser.sql; source db/getUsers.sql; source db/setFolder.sql; source db/setUser.sql; source db/addFile.sql; source db/deleteFile.sql; source db/findFileString.sql; source db/getFile.sql; source db/setFile.sql;
 select * from users; select * from folders; select * from files;
+
+sudo apt update
+sudo apt install mysql-server
+sudo mysql_secure_installation
+
+sudo mysql
+CREATE DATABASE tshutty;
+CREATE USER 'tshutty'@'localhost' IDENTIFIED BY 'PX77iADJ';
+GRANT ALL ON tshutty.* TO 'tshutty'@'localhost';
+
+mysql -u tshutty -p tshutty
+PX77iADJ
+SET SQL_MODE='ALLOW_INVALID_DATES';
+SET GLOBAL sql_mode = '';
+
+
+don't run this script:
+source db/populateTables.sql;
