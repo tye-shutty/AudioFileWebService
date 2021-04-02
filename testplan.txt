@@ -1,54 +1,58 @@
 #Dear Reader, the following commands are written for my UNB account (tshutty@unb.ca). You will have to find and replace that string for your own to make them work.
 Also, you will need admin status, which requires you to access the database and set it in the users table. For security purposes only existing admins can make new admins.
 
+-------------------------------
 class SignIn(Resource):
+-------------------------------
     # POST: login
-curl -i -H "Content-Type: application/json" -X POST -d '{"username": "tshutty", "password": "..."}' -c cookie-jar -b cookie-jar -k https://cs3103.cs.unb.ca:5045/signin
+curl -i -H "Content-Type: application/json" -X POST -d '{"username": "tshutty", "password": "..."}' -c cookie-jar -b cookie-jar -k https://cs3103.cs.unb.ca:8027/signin
 201
 {
   "status": "success"
 }
 
     # GET: Check if logged in
-curl -i -H "Content-Type: application/json" -X GET -c cookie-jar -b cookie-jar -k https://cs3103.cs.unb.ca:5045/signin
-    200
+curl -i -H "Content-Type: application/json" -X GET -c cookie-jar -b cookie-jar -k https://cs3103.cs.unb.ca:8027/signin
+200
 {
   "status": "success"
 }
 
     # DELETE: logout
-curl -i -H "Content-Type: application/json" -X DELETE -c cookie-jar -b cookie-jar -k https://cs3103.cs.unb.ca:5045/signin
-    200
+curl -i -H "Content-Type: application/json" -X DELETE -c cookie-jar -b cookie-jar -k https://cs3103.cs.unb.ca:8027/signin
+200
 {
   "status": "success"
 }
 # GET again:
-curl -i -H "Content-Type: application/json" -X GET -c cookie-jar -b cookie-jar -k https://cs3103.cs.unb.ca:5045/signin
+curl -i -H "Content-Type: application/json" -X GET -c cookie-jar -b cookie-jar -k https://cs3103.cs.unb.ca:8027/signin
 403
 {
   "status": "not logged in"
 }
 #login again to continue your journey:
-curl -i -H "Content-Type: application/json" -X POST -d '{"username": "tshutty", "password": "..."}' -c cookie-jar -b cookie-jar -k https://cs3103.cs.unb.ca:5045/signin
+curl -i -H "Content-Type: application/json" -X POST -d '{"username": "tshutty", "password": "..."}' -c cookie-jar -b cookie-jar -k https://cs3103.cs.unb.ca:8027/signin
 
+-------------------------------
 class Users(Resource):
+-------------------------------
     #POST: create account
     #email must match unb email to be able to access restricted resources
-curl -i -H "Content-Type: application/json" -X POST -d '{"email": "tshutty@unb.ca"}' -c cookie-jar -b cookie-jar -k https://cs3103.cs.unb.ca:5045/users
+curl -i -H "Content-Type: application/json" -X POST -d '{"email": "tshutty@unb.ca"}' -c cookie-jar -b cookie-jar -k https://cs3103.cs.unb.ca:8027/users
 201
 {
-  "uri": "https://cs3103.cs.unb.ca:5045/users/tshutty@unb.ca"
+  "uri": "https://cs3103.cs.unb.ca:8027/users/tshutty@unb.ca"
 }
 #Repeat command:
-curl -i -H "Content-Type: application/json" -X POST -d '{"email": "tshutty@unb.ca"}' -c cookie-jar -b cookie-jar -k https://cs3103.cs.unb.ca:5045/users
+curl -i -H "Content-Type: application/json" -X POST -d '{"email": "tshutty@unb.ca"}' -c cookie-jar -b cookie-jar -k https://cs3103.cs.unb.ca:8027/users
 409
 {
   "status": "User exists."
 }
 
     # GET: Only for admins, returns non admins
-curl -i -H "Content-Type: application/json" -X GET -c cookie-jar -b cookie-jar -k https://cs3103.cs.unb.ca:5045/users
-    200
+curl -i -H "Content-Type: application/json" -X GET -c cookie-jar -b cookie-jar -k https://cs3103.cs.unb.ca:8027/users
+200
 {
   "users": [
     {
@@ -60,9 +64,11 @@ curl -i -H "Content-Type: application/json" -X GET -c cookie-jar -b cookie-jar -
   ]
 }
 
+-------------------------------
 class User(Resource):
+-------------------------------
     #Get user
-    #curl -i -H "Content-Type: application/json" -X GET -c cookie-jar -b cookie-jar -k https://cs3103.cs.unb.ca:5045/users/tshutty@unb.ca
+    #curl -i -H "Content-Type: application/json" -X GET -c cookie-jar -b cookie-jar -k https://cs3103.cs.unb.ca:8027/users/tshutty@unb.ca
 200
 {
   "user": {
@@ -72,71 +78,78 @@ class User(Resource):
 }
 
     #Change email
-curl -i -H "Content-Type: application/json" -X PATCH -d '{"email":"dum@poopie"}' -c cookie-jar -b cookie-jar -k https://cs3103.cs.unb.ca:5045/users/tshutty@unb.ca
+curl -i -H "Content-Type: application/json" -X PATCH -d '{"email":"dum@poopie"}' -c cookie-jar -b cookie-jar -k https://cs3103.cs.unb.ca:8027/users/tshutty@unb.ca
 200
 {
   "status": "changed tshutty@unb.ca to dum@poopie"
 }
     #Change email back:
-curl -i -H "Content-Type: application/json" -X PATCH -d '{"email":"tshutty@unb.ca"}' -c cookie-jar -b cookie-jar -k https://cs3103.cs.unb.ca:5045/users/dum@poopie
+curl -i -H "Content-Type: application/json" -X PATCH -d '{"email":"tshutty@unb.ca"}' -c cookie-jar -b cookie-jar -k https://cs3103.cs.unb.ca:8027/users/dum@poopie
 200
 {
   "status": "changed dum@poopie to tshutty@unb.ca"
 }
+
 #delete user:
-    #curl -i -H "Content-Type: application/json" -X DELETE -c cookie-jar -b cookie-jar -k https://cs3103.cs.unb.ca:5045/users/tshutty@unb.ca
+    #curl -i -H "Content-Type: application/json" -X DELETE -c cookie-jar -b cookie-jar -k https://cs3103.cs.unb.ca:8027/users/tshutty@unb.ca
 200
 {
   "status": "deleted tshutty@unb.ca"
 }
 #repeat:
-    #curl -i -H "Content-Type: application/json" -X DELETE -c cookie-jar -b cookie-jar -k https://cs3103.cs.unb.ca:5045/users/tshutty@unb.ca
+    #curl -i -H "Content-Type: application/json" -X DELETE -c cookie-jar -b cookie-jar -k https://cs3103.cs.unb.ca:8027/users/tshutty@unb.ca
 403
 {
   "status": "not logged in"
 }
 #sign back in and recreate user to continue your journey:
-curl -i -H "Content-Type: application/json" -X POST -d '{"username": "tshutty", "password": "..."}' -c cookie-jar -b cookie-jar -k https://cs3103.cs.unb.ca:5045/signin
-curl -i -H "Content-Type: application/json" -X POST -d '{"email": "tshutty@unb.ca"}' -c cookie-jar -b cookie-jar -k https://cs3103.cs.unb.ca:5045/users
+curl -i -H "Content-Type: application/json" -X POST -d '{"username": "tshutty", "password": "..."}' -c cookie-jar -b cookie-jar -k https://cs3103.cs.unb.ca:8027/signin
+curl -i -H "Content-Type: application/json" -X POST -d '{"email": "tshutty@unb.ca"}' -c cookie-jar -b cookie-jar -k https://cs3103.cs.unb.ca:8027/users
 
+-------------------------------
 class Authorize(Resource):
+-------------------------------
     # /users/{email}/authorize
     # requires logged in user to have admin status, which requires the database to be manually set with an inital admin.
     # This is done for  security purposes.
     # If changing self, must logout first before changes take effect
     # make existing admin non admin
-curl -i -H "Content-Type: application/json" -X PATCH -d '{"admin_status": 0}' -c cookie-jar -b cookie-jar -k https://cs3103.cs.unb.ca:5045/users/p2@domain.com/authorize
+curl -i -H "Content-Type: application/json" -X PATCH -d '{"admin_status": 0}' -c cookie-jar -b cookie-jar -k https://cs3103.cs.unb.ca:8027/users/p2@domain.com/authorize
+200
     # {
     #   "status": "updated p2@domain.com"
     # }
     # repeat command
-curl -i -H "Content-Type: application/json" -X PATCH -d '{"admin_status": 0}' -c cookie-jar -b cookie-jar -k https://cs3103.cs.unb.ca:5045/users/p2@domain.com/authorize
+curl -i -H "Content-Type: application/json" -X PATCH -d '{"admin_status": 0}' -c cookie-jar -b cookie-jar -k https://cs3103.cs.unb.ca:8027/users/p2@domain.com/authorize
+200
     # {
     #   "status": "no change to p2@domain.com"
     # }
     # make existing non admin admin
-curl -i -H "Content-Type: application/json" -X PATCH -d '{"admin_status": 1}' -c cookie-jar -b cookie-jar -k https://cs3103.cs.unb.ca:5045/users/person@domain.com/authorize
+200
+curl -i -H "Content-Type: application/json" -X PATCH -d '{"admin_status": 1}' -c cookie-jar -b cookie-jar -k https://cs3103.cs.unb.ca:8027/users/person@domain.com/authorize
     # {
     #   "status": "updated person@domain.com"
     # }
 
+-------------------------------
 class Folders(Resource):
+-------------------------------
     # create root folder
-curl -i -H "Content-Type: application/json" -X POST -d '{"folder_name": "hotdogs","folder_description":"pink", "parent":0}' -c cookie-jar -b cookie-jar -k https://cs3103.cs.unb.ca:5045/users/tshutty@unb.ca/folders
+curl -i -H "Content-Type: application/json" -X POST -d '{"folder_name": "hotdogs","folder_description":"pink", "parent":0}' -c cookie-jar -b cookie-jar -k https://cs3103.cs.unb.ca:8027/users/tshutty@unb.ca/folders
 201
 {
-  "uri": "https://cs3103.cs.unb.ca:5045/users/tshutty@unb.ca/folders/4"
+  "uri": "https://cs3103.cs.unb.ca:8027/users/tshutty@unb.ca/folders/4"
 }
-
     # create subfolder
-curl -i -H "Content-Type: application/json" -X POST -d '{"folder_name": "hamburgers","folder_description":"purple","parent":4}' -c cookie-jar -b cookie-jar -k https://cs3103.cs.unb.ca:5045/users/tshutty@unb.ca/folders
+curl -i -H "Content-Type: application/json" -X POST -d '{"folder_name": "hamburgers","folder_description":"purple","parent":4}' -c cookie-jar -b cookie-jar -k https://cs3103.cs.unb.ca:8027/users/tshutty@unb.ca/folders
 201
 {
-  "uri": "https://cs3103.cs.unb.ca:5045/users/tshutty@unb.ca/folders/5"
+  "uri": "https://cs3103.cs.unb.ca:8027/users/tshutty@unb.ca/folders/5"
 }
 
     #GET all folder ids matching string
-curl -i -H "Content-Type: application/json" -X GET -c cookie-jar -b cookie-jar -k "https://cs3103.cs.unb.ca:5045/users/tshutty@unb.ca/folders?string=%"
+curl -i -H "Content-Type: application/json" -X GET -c cookie-jar -b cookie-jar -k "https://cs3103.cs.unb.ca:8027/users/tshutty@unb.ca/folders?string=%"
 200
 {
   "folders": [
@@ -149,10 +162,11 @@ curl -i -H "Content-Type: application/json" -X GET -c cookie-jar -b cookie-jar -
   ]
 }
 
-
+-------------------------------
 class Folder(Resource):
+-------------------------------
 #GET a folder
-curl -i -H "Content-Type: application/json" -X GET -c cookie-jar -b cookie-jar -k https://cs3103.cs.unb.ca:5045/users/tshutty@unb.ca/folders/4
+curl -i -H "Content-Type: application/json" -X GET -c cookie-jar -b cookie-jar -k https://cs3103.cs.unb.ca:8027/users/tshutty@unb.ca/folders/4
 200
 {
   "folder": {
@@ -163,20 +177,34 @@ curl -i -H "Content-Type: application/json" -X GET -c cookie-jar -b cookie-jar -
     "parent": 0
   }
 }
+# GET a different users folder (as a non-admin):
+curl -i -H "Content-Type: application/json" -X GET -c cookie-jar -b cookie-jar -k https://cs3103.cs.unb.ca:8027/users/person@domain.com/folders/1
+403
+{
+  "status": "not logged in as person@domain.com and not admin"
+}
+#GET a folder that doesn't exist:
+curl -i -H "Content-Type: application/json" -X GET -c cookie-jar -b cookie-jar -k https://cs3103.cs.unb.ca:8027/users/tshutty@unb.ca/folders/100
+404
+{
+  "status": "no folder"
+}
+
 #PATCH folder:
-curl -i -H "Content-Type: application/json" -X PATCH -d '{"name":"nice","description":"blue"}' -c cookie-jar -b cookie-jar -k https://cs3103.cs.unb.ca:5045/users/tshutty@unb.ca/folders/4
+curl -i -H "Content-Type: application/json" -X PATCH -d '{"name":"nice","description":"blue"}' -c cookie-jar -b cookie-jar -k https://cs3103.cs.unb.ca:8027/users/tshutty@unb.ca/folders/4
 200
 {
   "status": "folder updated"
 }
 #Repeat command:
-curl -i -H "Content-Type: application/json" -X PATCH -d '{"name":"nice","description":"blue"}' -c cookie-jar -b cookie-jar -k https://cs3103.cs.unb.ca:5045/users/tshutty@unb.ca/folders/4
-    200
-    {
+curl -i -H "Content-Type: application/json" -X PATCH -d '{"name":"nice","description":"blue"}' -c cookie-jar -b cookie-jar -k https://cs3103.cs.unb.ca:8027/users/tshutty@unb.ca/folders/4
+200
+{
   "status": "no change to tshutty@unb.ca"
 }
+
 GET folder again:
-curl -i -H "Content-Type: application/json" -X GET -c cookie-jar -b cookie-jar -k https://cs3103.cs.unb.ca:5045/users/tshutty@unb.ca/folders/4
+curl -i -H "Content-Type: application/json" -X GET -c cookie-jar -b cookie-jar -k https://cs3103.cs.unb.ca:8027/users/tshutty@unb.ca/folders/4
 200
 {
   "folder": {
@@ -189,29 +217,31 @@ curl -i -H "Content-Type: application/json" -X GET -c cookie-jar -b cookie-jar -
 }
 
 #DELETE folder:
-curl -i -H "Content-Type: application/json" -X DELETE -c cookie-jar -b cookie-jar -k https://cs3103.cs.unb.ca:5045/users/tshutty@unb.ca/folders/5
+curl -i -H "Content-Type: application/json" -X DELETE -c cookie-jar -b cookie-jar -k https://cs3103.cs.unb.ca:8027/users/tshutty@unb.ca/folders/5
 200
 {
   "status": "deleted 5"
 }
 
+-------------------------------
 class Files(Resource):
+-------------------------------
  #POST: create file
     echo hi > myfile.txt
-    curl -i -X POST --form file_description="5:00" --form parent=4 --form "file=@myfile.txt" -c cookie-jar -b cookie-jar -k https://cs3103.cs.unb.ca:5045/users/tshutty@unb.ca/files
+    curl -i -X POST --form file_description="5:00" --form parent=4 --form "file=@myfile.txt" -c cookie-jar -b cookie-jar -k https://cs3103.cs.unb.ca:8027/users/tshutty@unb.ca/files
 201
 {
-  "uri": "https://cs3103.cs.unb.ca:504/users/tshutty@unb.ca/files/4"
+  "uri": "https://localhost:504/users/tshutty@unb.ca/files/4"
 }
 #Try to create with invalid parent:
-curl -i -X POST --form file_description="5:00" --form parent=10 --form "file=@myfile.txt" -c cookie-jar -b cookie-jar -k https://cs3103.cs.unb.ca:5045/users/tshutty@unb.ca/files
+curl -i -X POST --form file_description="5:00" --form parent=10 --form "file=@myfile.txt" -c cookie-jar -b cookie-jar -k https://cs3103.cs.unb.ca:8027/users/tshutty@unb.ca/files
 400
 {
   "status": "(1644, 'Unable to create the file.')"
 }
 
 #GET all matching file ids
-curl -i -H "Content-Type: application/json" -X GET -c cookie-jar -b cookie-jar -k "https://cs3103.cs.unb.ca:5045/users/tshutty@unb.ca/files?string=my%"
+curl -i -H "Content-Type: application/json" -X GET -c cookie-jar -b cookie-jar -k "https://cs3103.cs.unb.ca:8027/users/tshutty@unb.ca/files?string=my%"
 200
 {
   "files": [
@@ -221,9 +251,11 @@ curl -i -H "Content-Type: application/json" -X GET -c cookie-jar -b cookie-jar -
   ]
 }
 
+-------------------------------
 class File(Resource):
+-------------------------------
 #GET file record
-curl -i -H "Content-Type: application/json" -X GET -c cookie-jar -b cookie-jar -k "https://cs3103.cs.unb.ca:5045/users/tshutty@unb.ca/files/4?stream=false"
+curl -i -H "Content-Type: application/json" -X GET -c cookie-jar -b cookie-jar -k "https://cs3103.cs.unb.ca:8027/users/tshutty@unb.ca/files/4?stream=false"
 200
 {
   "file": {
@@ -238,18 +270,20 @@ curl -i -H "Content-Type: application/json" -X GET -c cookie-jar -b cookie-jar -
   }
 }
 #GET file stream
-curl -i -H "Content-Type: application/json" -X GET -c cookie-jar -b cookie-jar -k "https://cs3103.cs.unb.ca:5045/users/tshutty@unb.ca/files/4?stream=true"
+curl -i -H "Content-Type: application/json" -X GET -c cookie-jar -b cookie-jar -k "https://cs3103.cs.unb.ca:8027/users/tshutty@unb.ca/files/4?stream=true"
 200
 hi
+
 #PATCH file record:
-curl -i -H "Content-Type: application/json" -X PATCH -d '{"name":"song2.mp3","description":"Blur","plays_count":3000,"last_played":"2021-03-26 18:32:48","parent":4}' -c cookie-jar -b cookie-jar -k https://cs3103.cs.unb.ca:5045/users/tshutty@unb.ca/files/4
+curl -i -H "Content-Type: application/json" -X PATCH -d '{"name":"song2.mp3","description":"Blur","plays_count":3000,"last_played":"2021-03-26 18:32:48","parent":4}' -c cookie-jar -b cookie-jar -k https://cs3103.cs.unb.ca:8027/users/tshutty@unb.ca/files/4
 200
 {
   "status": "file updated"
 }
 
 #DELETE file
-curl -i -H "Content-Type: application/json" -X DELETE -c cookie-jar -b cookie-jar -k https://cs3103.cs.unb.ca:5045/users/tshutty@unb.ca/files/4
+curl -i -H "Content-Type: application/json" -X DELETE -c cookie-jar -b cookie-jar -k https://cs3103.cs.unb.ca:8027/users/tshutty@unb.ca/files/4
+200
 {
   "status": "deleted 4"
 }

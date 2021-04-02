@@ -9,8 +9,10 @@ CREATE PROCEDURE deleteFolder
 BEGIN
    /* Check if has children before deleting */
    declare x int default 0; 
+   declare y int default 0; 
    SELECT COUNT(*) INTO x FROM folders WHERE parent=id_in; 
-   IF (x = 0) THEN
+   SELECT COUNT(*) INTO y FROM files WHERE parent=id_in; 
+   IF (x = 0 AND y = 0) THEN
       DELETE FROM folders WHERE folder_id = id_in;
    ELSE
       SIGNAL SQLSTATE '45000'

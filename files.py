@@ -13,11 +13,20 @@ import werkzeug
 class Files(Resource):
     # curl -i -H "Content-Type: application/json" -X GET -c cookie-jar -b cookie-jar -k "https://cs3103.cs.unb.ca:5045/users/tshutty@unb.ca/files?string=%"
     def get(self, email):
-
+        if(settings.APP_HOST == '127.0.0.1'):
+        #     with open('session.json') as f:
+        #         session = json.load(f)
+            session = settings.SESSION
+        else:
+            from flask import session
         if 'email' not in session:
             return make_response(jsonify({'status': 'not logged in'}), 403)
-
+        print('sess0=',session)
         check_if_admin()
+        # if(settings.APP_HOST == '127.0.0.1'):
+        #     with open('session.json') as f:
+        #         session = json.load(f)
+        print('sess=',session)
         if session['email'] != email and session['admin_status'] == 0:
             return make_response(jsonify({'status': 'not logged in as '+email+' and not admin'}), 403)
 
@@ -25,10 +34,10 @@ class Files(Resource):
         string = request.args.get('string', "%")
 
         dbConnection = pymysql.connect(
-            settings.MYSQL_HOST,
-            settings.MYSQL_USER,
-            settings.MYSQL_PASSWD,
-            settings.MYSQL_DB,
+            host = settings.MYSQL_HOST,
+            user = settings.MYSQL_USER,
+            passwd = settings.MYSQL_PASSWD,
+            db = settings.MYSQL_DB,
             charset='utf8mb4',
             cursorclass= pymysql.cursors.DictCursor)
 
@@ -54,21 +63,32 @@ class Files(Resource):
         # create file
         # curl -i -X POST --form file_description="5:00" --form parent=4 --form "file=@myfile.txt" -c cookie-jar -b cookie-jar -k https://cs3103.cs.unb.ca:5045/users/tshutty@unb.ca/files
 
+        if(settings.APP_HOST == '127.0.0.1'):
+        #     with open('session.json') as f:
+        #         session = json.load(f)
+            session = settings.SESSION
+        else:
+            from flask import session
         if 'email' not in session:
             return make_response(jsonify({'status': 'not logged in'}), 403)
             
         check_if_admin()
+        # if(settings.APP_HOST == '127.0.0.1'):
+        #     with open('session.json') as f:
+        #         session = json.load(f)
         if session['email'] != email and session['admin_status'] == 0:
             return make_response(jsonify({'status': 'not logged in as '+email+' and not admin'}), 403)
 
+        print('form=',request.form)
+        print('file=',request.files['file'])
         if (not request.form
         or not 'file_description' in request.form
         or not 'parent' in request.form
         or not 'file' in request.files 
-        or not 'file' in request.files 
         or request.files['file'] == ''
         or not allowed_file(request.files['file'].filename)):
             return make_response(jsonify({'status': 'invalid request body'}), 400)
+
 
         # file_name = request.form['file_name']
         file_description = request.form['file_description']
@@ -77,9 +97,9 @@ class Files(Resource):
         parse = reqparse.RequestParser()
         parse.add_argument('file', type=werkzeug.datastructures.FileStorage, location='files')
         args = parse.parse_args()
-        image_file = args['file']
-        file_name = image_file.filename
-        print(image_file)
+        audio_file = args['file']
+        file_name = audio_file.filename
+        print(audio_file)
 
         # file = request.files['file']
         # print(file)
@@ -87,10 +107,11 @@ class Files(Resource):
         # filename = secure_filename(file.filename)
         # file.save(os.path.join(app.config['UPLOAD_FOLDER'], filename))
 
-        dbConnection = pymysql.connect(settings.MYSQL_HOST,
-            settings.MYSQL_USER,
-            settings.MYSQL_PASSWD,
-            settings.MYSQL_DB,
+        dbConnection = pymysql.connect(
+            host = settings.MYSQL_HOST,
+            user = settings.MYSQL_USER,
+            passwd = settings.MYSQL_PASSWD,
+            db = settings.MYSQL_DB,
             charset='utf8mb4',
             cursorclass= pymysql.cursors.DictCursor)
        
@@ -101,7 +122,7 @@ class Files(Resource):
             cursor.callproc(sql,sqlArgs) # stored procedure, with arguments
             file_id = cursor.fetchone()
             dbConnection.commit() # database was modified, commit the changes
-        except pymysql.err.InternalError as e:
+        except Exception as e:
             print(e)
             return make_response(jsonify({'status': str(e)}), 400)
         except:
@@ -113,7 +134,7 @@ class Files(Resource):
         uri = 'https://'+settings.APP_HOST+':'+str(settings.APP_PORT)
         uri = uri+'/users/'+email+'/'+str(file_id['LAST_INSERT_ID()'])
 
-        image_file.save(os.path.join(settings.UPLOAD_FOLDER,str(file_id['LAST_INSERT_ID()'])))
+        audio_file.save(os.path.join(settings.UPLOAD_FOLDER,str(file_id['LAST_INSERT_ID()'])))
 
         return make_response(jsonify( { "uri" : uri } ), 201) # successful resource creation
 

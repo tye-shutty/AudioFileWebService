@@ -12,6 +12,12 @@ class Users(Resource):
     # GET: Only for admins, returns non admins
     # curl -i -H "Content-Type: application/json" -X GET -c cookie-jar -b cookie-jar -k https://cs3103.cs.unb.ca:5045/users
     def get(self):
+        if(settings.APP_HOST == '127.0.0.1'):
+        #     with open('session.json') as f:
+        #         session = json.load(f)
+            session = settings.SESSION
+        else:
+            from flask import session
 
         if 'email' not in session:
             return make_response(jsonify({'status': 'not logged in'}), 403)
@@ -20,16 +26,21 @@ class Users(Resource):
         if session['admin_status'] == 0:
             return make_response(jsonify({'status': 'not admin'}), 403)
 
+        # dbConnection = pymysql.connect(
+        #     settings.MYSQL_HOST,
+        #     settings.MYSQL_USER,
+        #     settings.MYSQL_PASSWD,
+        #     settings.MYSQL_DB,
+        #     charset='utf8mb4',
+        #     cursorclass= pymysql.cursors.DictCursor)
+
         dbConnection = pymysql.connect(
-            settings.MYSQL_HOST,
-            settings.MYSQL_USER,
-            settings.MYSQL_PASSWD,
-            settings.MYSQL_DB,
+            host = settings.MYSQL_HOST,
+            user = settings.MYSQL_USER,
+            passwd = settings.MYSQL_PASSWD,
+            db = settings.MYSQL_DB,
             charset='utf8mb4',
             cursorclass= pymysql.cursors.DictCursor)
-
-        if session['admin_status'] == 0:
-            return make_response(jsonify({'status': 'not an admin'}), 403)
 
         sql = 'getUsers'
         try:
@@ -46,6 +57,12 @@ class Users(Resource):
     #email must match unb email to be able to access restricted resources
     # curl -i -H "Content-Type: application/json" -X POST -d '{"email": "tshutty@unb.ca"}' -c cookie-jar -b cookie-jar -k https://cs3103.cs.unb.ca:5045/users
     def post(self):
+        if(settings.APP_HOST == '127.0.0.1'):
+        #     with open('session.json') as f:
+        #         session = json.load(f)
+            session = settings.SESSION
+        else:
+            from flask import session
         if not request.json or not 'email' in request.json:
             return make_response(jsonify({'status': 'no request'}), 400)
 
@@ -54,10 +71,11 @@ class Users(Resource):
         if len(email) < 1 or len(email) > 200:
             return make_response(jsonify({'status': 'email must be > 1 < 200 char'}), 400)
 
-        dbConnection = pymysql.connect(settings.MYSQL_HOST,
-            settings.MYSQL_USER,
-            settings.MYSQL_PASSWD,
-            settings.MYSQL_DB,
+        dbConnection = pymysql.connect(
+            host = settings.MYSQL_HOST,
+            user = settings.MYSQL_USER,
+            passwd = settings.MYSQL_PASSWD,
+            db = settings.MYSQL_DB,
             charset='utf8mb4',
             cursorclass= pymysql.cursors.DictCursor)
         sql = 'addUser'
@@ -67,7 +85,7 @@ class Users(Resource):
             cursor.callproc(sql,sqlArgs) # stored procedure, with arguments
             # row = cursor.fetchone()
             dbConnection.commit() # database was modified, commit the changes
-        except pymysql.err.InternalError as e:
+        except Exception as e:
             code, msg = e.args
             print('sql error')
             return make_response(jsonify({'status': msg}), 409)
