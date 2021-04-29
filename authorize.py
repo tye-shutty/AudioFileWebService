@@ -8,9 +8,25 @@ import settings # Our server and db settings, stored in settings.py
 import ssl #include ssl libraries
 import sys
 
-# /users/{email}/authorize
-# curl -i -H "Content-Type: application/json" -X PATCH -d '{"admin_status": 0}' -c cookie-jar -b cookie-jar -k https://cs3103.cs.unb.ca:5045/users/tshutty@unb.ca/authorize
 class Authorize(Resource):
+    # /users/{email}/authorize
+    # requires logged in user to have admin status, which requires the database to be manually set with an inital admin.
+    # If changing self, must logout first before changes take effect
+    # make existing admin non admin
+    # curl -i -H "Content-Type: application/json" -X PATCH -d '{"admin_status": 0}' -c cookie-jar -b cookie-jar -k https://cs3103.cs.unb.ca:5045/users/p2@domain.com/authorize
+    # {
+    #   "status": "updated p2@domain.com"
+    # }
+    #repeat command
+    # curl -i -H "Content-Type: application/json" -X PATCH -d '{"admin_status": 0}' -c cookie-jar -b cookie-jar -k https://cs3103.cs.unb.ca:5045/users/p2@domain.com/authorize
+    # {
+    #   "status": "no change to p2@domain.com"
+    # }
+    # make existing non admin admin
+    # curl -i -H "Content-Type: application/json" -X PATCH -d '{"admin_status": 1}' -c cookie-jar -b cookie-jar -k https://cs3103.cs.unb.ca:5045/users/person@domain.com/authorize
+    # {
+    #   "status": "updated person@domain.com"
+    # }
     def patch(self, email):
         if 'email' not in session:
             return make_response(jsonify({'status': 'not logged in'}), 403)

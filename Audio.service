@@ -1,0 +1,13 @@
+[Unit]
+Description=Gunicorn instance to serve Audio
+After=network.target
+
+[Service]
+User=ubuntu
+Group=www-data
+WorkingDirectory=/home/ubuntu/Audio
+Environment="PATH=/home/ubuntu/Audio/Audioenv/bin"
+ExecStart=/home/ubuntu/Audio/Audioenv/bin/gunicorn --timeout 15 --workers 3 --bind unix:Audio.sock -m 007 wsgi:app
+
+[Install]
+WantedBy=multi-user.target

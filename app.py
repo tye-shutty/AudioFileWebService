@@ -1,6 +1,8 @@
 #!/usr/bin/env python3
 #adapted from Rick's code
-from flask import Flask, jsonify, abort, request, make_response, session
+#the application directory structure for the server is given by the organization of this submission folder
+#this folder (repo) can go on your home drive on the cs3103 machines
+from flask import Flask, jsonify, abort, request, make_response, session, send_file
 from flask_restful import Resource, Api, reqparse
 from flask_session import Session
 from helpers import check_if_admin
@@ -16,9 +18,11 @@ from werkzeug.utils import secure_filename
 app = Flask(__name__, static_url_path='/static')
 app.secret_key = settings.SECRET_KEY
 app.config['SESSION_TYPE'] = 'filesystem'
-app.config['SESSION_COOKIE_NAME'] = 'peanutButter'
-app.config['SESSION_COOKIE_DOMAIN'] = settings.APP_HOST
+if(settings.APP_HOST != '127.0.0.1'):
+	app.config['SESSION_COOKIE_NAME'] = 'peanutButter'
+	app.config['SESSION_COOKIE_DOMAIN'] = settings.APP_HOST
 app.config['UPLOAD_FOLDER'] = settings.UPLOAD_FOLDER
+# app.config['SESSION_COOKIE_DOMAIN'] = 'localhost:5045'
 Session(app)
 
 ####################################################################################
@@ -41,6 +45,9 @@ class Root(Resource):
 	def get(self):
 		return app.send_static_file('index.html')
 
+class Test(Resource):
+	def get(self):
+		return send_file('1', attachment_filename='1')
 ####################################################################################
 #
 # Identify/create endpoints and endpoint objects
@@ -55,6 +62,7 @@ from files import Files
 from file import File
 api = Api(app)
 api.add_resource(Root,'/')
+api.add_resource(Test,'/test')
 api.add_resource(SignIn, '/signin')
 api.add_resource(Users, '/users')
 api.add_resource(User, '/users/<string:email>')
@@ -66,8 +74,13 @@ api.add_resource(File, '/users/<string:email>/files/<int:file>')
 
 #############################################################################
 if __name__ == "__main__":
-	context = ('cert.pem', 'key.pem')
-	app.run(host=settings.APP_HOST, 
-		port=settings.APP_PORT, 
-		ssl_context=context,
-		debug=settings.APP_DEBUG)
+
+	if(settings.APP_HOST != 'ec2-18-218-32-161.us-east-2.compute.amazonaws.com'):
+		context = ('cert.pem', 'key.pem')
+		app.run(host=settings.APP_HOST, 
+			port=settings.APP_PORT, 
+			ssl_context=context,
+			debug=settings.APP_DEBUG)
+	# else:
+	# 	app.run(host=settings.APP_HOST,
+	# 		debug=settings.APP_DEBUG)

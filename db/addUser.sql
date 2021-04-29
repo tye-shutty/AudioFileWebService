@@ -21,7 +21,7 @@ BEGIN
       END IF;
    ELSE 
       SIGNAL SQLSTATE '52711'
-      SET MESSAGE_TEXT = 'Unable to create the user.';
+      SET MESSAGE_TEXT = 'User exists.';
    END IF;
 
 END //
