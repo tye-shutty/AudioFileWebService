@@ -10,6 +10,7 @@ import settings # Our server and db settings, stored in settings.py
 import ssl #include ssl libraries
 import sys
 
+
 class SignIn(Resource):
     # curl -i -H "Content-Type: application/json" -X POST -d '{"username": "tshutty", "password": "..."}' -c cookie-jar -b cookie-jar -k https://cs3103.cs.unb.ca:5045/signin
     
@@ -21,7 +22,7 @@ class SignIn(Resource):
         else:
             from flask import session
 
-        print('initial data=',session)
+        print('initial data=',settings.APP_HOST, session)
         print('cookie=', request.cookies)
         # print('request=', request.headers)
 
@@ -36,16 +37,20 @@ class SignIn(Resource):
             parser.add_argument('password', type=str, required=True)
             request_params = parser.parse_args()
             print('rp=', request_params)
+            if(settings.APP_HOST == 'cs3103.cs.unb.ca'):
+                email = request_params['username']+'@unb.ca'
+            else:
+                email = request_params['username'] #TODO: confirm if valid email
         except:
             abort(400) # bad request
 
-        if 'email' in session and session['email'] == request_params['username']+'@unb.ca':
+        if 'email' in session and session['email'] == email:
             response = {'status': 'success'}
             responseCode = 200
         else:
             try:
-                if(settings.APP_HOST == 'cs3103.cs.unb.ca' and
-                request_params['username'] != 'admin'):    # temporary access to demo admin
+                if(settings.APP_HOST == 'cs3103.cs.unb.ca'):    # temporary access to demo admin: and
+                # request_params['username'] != 'admin'
                     print('signing in with UNB')
                     ldapServer = Server(host=settings.LDAP_HOST)
                     ldapConnection = Connection(ldapServer,
@@ -55,8 +60,31 @@ class SignIn(Resource):
                     ldapConnection.open()
                     ldapConnection.start_tls()
                     ldapConnection.bind()
+                elif(settings.APP_HOST == 'tyeshutty.tk'):
+                    dbConnection = pymysql.connect(
+                        host = settings.MYSQL_HOST,
+                        user = settings.MYSQL_USER,
+                        passwd = settings.MYSQL_PASSWD,
+                        db = settings.MYSQL_DB,
+                        charset='utf8mb4',
+                        cursorclass= pymysql.cursors.DictCursor)
+
+                    sql = 'getUser'
+                    try:
+                        cursor = dbConnection.cursor()
+                        cursor.callproc(sql, [email]) # stored procedure, arguments
+                        row = cursor.fetchone()
+                    except Exception as e:
+                        print(str(e))
+                        return make_response(jsonify({'status': str(e)}), 400)
+                    finally:
+                        cursor.close()
+                        dbConnection.close()
+                    print('row=', row)
+                    
+
                 # At this point we have sucessfully authenticated.
-                session['email'] = request_params['username']+'@unb.ca'
+                session['email'] = email
                 print('sess email=',session['email'])
                 response = {'status': 'success' }
                 responseCode = 201
@@ -64,7 +92,7 @@ class SignIn(Resource):
                 response = {'status': 'Access denied'}
                 responseCode = 403
             finally:
-                if(settings.APP_HOST != '127.0.0.1' and
+                if(settings.APP_HOST == 'cs3103.unb.ca' and
                 request_params['username'] != 'admin'):    # temporary access to demo admin
                     ldapConnection.unbind()
         resp = make_response(jsonify(response), responseCode)

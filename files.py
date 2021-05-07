@@ -123,15 +123,16 @@ class Files(Resource):
             file_id = cursor.fetchone()
             dbConnection.commit() # database was modified, commit the changes
         except Exception as e:
-            print(e)
+            print(str(e))
             return make_response(jsonify({'status': str(e)}), 400)
         except:
             abort(500) # Nondescript server error
         finally:
             cursor.close()
             dbConnection.close()
-        
-        uri = 'https://'+settings.APP_HOST+':'+str(settings.APP_PORT)
+        uri = 'https://'+settings.APP_HOST
+        if(settings.APP_HOST != tyeshutty.tk):
+            uri = uri +':'+str(settings.APP_PORT)
         uri = uri+'/users/'+email+'/'+str(file_id['LAST_INSERT_ID()'])
 
         audio_file.save(os.path.join(settings.UPLOAD_FOLDER,str(file_id['LAST_INSERT_ID()'])))

@@ -15,7 +15,7 @@ import ssl #include ssl libraries
 import sys
 from werkzeug.utils import secure_filename
 
-app = Flask(__name__, static_url_path='/static')
+app = Flask(__name__, static_url_path='/audio/static')
 app.secret_key = settings.SECRET_KEY
 app.config['SESSION_TYPE'] = 'filesystem'
 if(settings.APP_HOST != '127.0.0.1'):
@@ -43,11 +43,15 @@ def not_found(error):
 # curl -k https://cs3103.cs.unb.ca:5045/
 class Root(Resource):
 	def get(self):
+		print('hello')
+		# session["test"] = "hi"
+		# return 'init'
 		return app.send_static_file('index.html')
 
-class Test(Resource):
-	def get(self):
-		return send_file('1', attachment_filename='1')
+# class Test(Resource):
+# 	def get(self):
+# 		return 'hi=' + session.get('test', 'no test')
+# 		# return send_file('1', attachment_filename='1')
 ####################################################################################
 #
 # Identify/create endpoints and endpoint objects
@@ -61,26 +65,26 @@ from folder import Folder
 from files import Files
 from file import File
 api = Api(app)
-api.add_resource(Root,'/')
-api.add_resource(Test,'/test')
-api.add_resource(SignIn, '/signin')
-api.add_resource(Users, '/users')
-api.add_resource(User, '/users/<string:email>')
-api.add_resource(Authorize, '/users/<string:email>/authorize')
-api.add_resource(Folders, '/users/<string:email>/folders')
-api.add_resource(Folder, '/users/<string:email>/folders/<int:folder>')
-api.add_resource(Files, '/users/<string:email>/files')
-api.add_resource(File, '/users/<string:email>/files/<int:file>')
+root = '/audio'
+api.add_resource(Root,root)
+# api.add_resource(Test,root+'/test')
+api.add_resource(SignIn, root+'/signin')
+api.add_resource(Users, root+'/users')
+api.add_resource(User, root+'/users/<string:email>')
+api.add_resource(Authorize, root+'/users/<string:email>/authorize')
+api.add_resource(Folders, root+'/users/<string:email>/folders')
+api.add_resource(Folder, root+'/users/<string:email>/folders/<int:folder>')
+api.add_resource(Files, root+'/users/<string:email>/files')
+api.add_resource(File, root+'/users/<string:email>/files/<int:file>')
 
 #############################################################################
 if __name__ == "__main__":
 
-	if(settings.APP_HOST != 'ec2-18-218-32-161.us-east-2.compute.amazonaws.com'):
+	if(settings.APP_HOST != 'tyeshutty.tk'):
 		context = ('cert.pem', 'key.pem')
 		app.run(host=settings.APP_HOST, 
 			port=settings.APP_PORT, 
 			ssl_context=context,
 			debug=settings.APP_DEBUG)
-	# else:
-	# 	app.run(host=settings.APP_HOST,
-	# 		debug=settings.APP_DEBUG)
+	else:
+		app.run(debug=settings.APP_DEBUG)

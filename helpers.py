@@ -36,7 +36,7 @@ def check_if_admin():
 
             session['admin_status'] = row[0]['admin_status']
         except Exception as e:
-            print(e)
+            print(str(e))
             abort(500) # Nondescript server error
         finally:
             cursor.close()

@@ -16,3 +16,15 @@ This site is designed to be run on Firefox, Chrome and other browsers may behave
 This site was designed for cs3103, UNB in 2021 by Tye Shutty. Audīsne mē? is Latin for "Are you listening to me?"
 
 Please don't worry about us storing some passwords on github, this site is not being hosted on the public internet.
+
+View errors on server: 
+systemctl status Audio
+journalctl -u Audio.service
+
+ --error-logfile /var/log/gunicorn/audio_error.log --access-logfile /var/log/gunicorn/access.log
+sudo chown azureuser /var/log/gunicorn/*.log
+<!-- https://mattsegal.dev/django-gunicorn-nginx-logging.html -->
+/var/log/nginx/error.log
+/var/log/nginx/access.log
+tail -n 5
+or less, shift-g to go to end

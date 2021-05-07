@@ -133,3 +133,4 @@ flask_session/
 cookie-jar 
 static/uploads/*
 test_files/*
+settings.py

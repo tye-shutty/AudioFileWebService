@@ -1,12 +1,10 @@
 
 mkdir ../Audio
-cp Audio Audio.service deploy.sh build.sh *.py https_certification.sh ../Audio
-cp -r db ../Audio
-cp -r static ../Audio
-cp -r uploads ../Audio
-scp -i ~/.ssh/aws_HP.pem -r ../Audio ubuntu@ec2-18-218-32-161.us-east-2.compute.amazonaws.com:~
+cp Audio.service build.sh *.py ../Audio
+cp -r db static ../Audio
+scp -i ../ChexyAIHost_key.pem -r ../Audio azureuser@52.138.40.34:~
 rm -rf ../Audio
-ssh -i ~/.ssh/aws_HP.pem ubuntu@ec2-18-218-32-161.us-east-2.compute.amazonaws.com
+ssh -o ServerAliveInterval=100000000 -i ../ChexyAIHost_key.pem azureuser@52.138.40.34
 
 # then on server: cd Audio
 # chmod +x build.sh deploy.sh http_certification.sh app.py
