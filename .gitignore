@@ -134,3 +134,4 @@ cookie-jar
 static/uploads/*
 test_files/*
 settings.py
+backup_settings.py
