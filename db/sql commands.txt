@@ -7,13 +7,14 @@ sudo mysql_secure_installation
 
 sudo mysql
 CREATE DATABASE tshutty;
-CREATE USER 'tshutty'@'localhost' IDENTIFIED BY 'PX77iADJ';
+CREATE USER 'tshutty'@'localhost' IDENTIFIED BY '<password>';
 GRANT ALL ON tshutty.* TO 'tshutty'@'localhost';
+SET GLOBAL sql_mode = '';
 
 mysql -u tshutty -p tshutty
-PX77iADJ
+
 SET SQL_MODE='ALLOW_INVALID_DATES';
-SET GLOBAL sql_mode = '';
+
 
 
 don't run this script:

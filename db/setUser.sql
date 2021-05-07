@@ -6,13 +6,15 @@ CREATE PROCEDURE setUser
    /* Parameters */
    IN email_in VARCHAR(200),
    IN new_email_in VARCHAR(200),
-   IN admin_status_in BOOLEAN
+   IN admin_status_in BOOLEAN,
+   IN pswd_in VARCHAR(200)
 )
 BEGIN
    /* Do the INSERT */
   UPDATE users 
   SET admin_status = admin_status_in,
-      email = new_email_in 
+      email = new_email_in,
+      pswd = pswd_in 
   WHERE email = email_in;
 
    /*ROW_COUNT() returns the number of rows updated, inserted or deleted by the preceding statement.*/

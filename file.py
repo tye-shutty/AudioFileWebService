@@ -201,7 +201,7 @@ class File(Resource):
                 cursor.callproc(sql, [file])
                 dbConnection.commit() #NEEDED for updates and inserts
             except Exception as e:
-                print(e)
+                print(str(e))
                 return make_response(jsonify({'status':'file not deleted'}), 400)
             except:
                 abort(500) # Nondescript server error

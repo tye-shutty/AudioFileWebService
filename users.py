@@ -63,10 +63,11 @@ class Users(Resource):
             session = settings.SESSION
         else:
             from flask import session
-        if not request.json or not 'email' in request.json:
+        if not request.json or not 'email' in request.json or not 'password' in request.json:
             return make_response(jsonify({'status': 'no request'}), 400)
 
         email = request.json['email']
+        password = request.json['password']
         print('len=',len(email))
         if len(email) < 1 or len(email) > 200:
             return make_response(jsonify({'status': 'email must be > 1 < 200 char'}), 400)
@@ -81,13 +82,13 @@ class Users(Resource):
         sql = 'addUser'
         try:
             cursor = dbConnection.cursor()
-            sqlArgs = (email, 0) # Must be a collection
+            sqlArgs = (email, password, 0) # Must be a collection
             cursor.callproc(sql,sqlArgs) # stored procedure, with arguments
             # row = cursor.fetchone()
             dbConnection.commit() # database was modified, commit the changes
         except Exception as e:
             code, msg = e.args
-            print('sql error')
+            print('sql error', str(e))
             return make_response(jsonify({'status': msg}), 409)
         finally:
             cursor.close()
@@ -95,6 +96,8 @@ class Users(Resource):
         # Look closely, Grasshopper: we just created a new resource, so we're
         # returning the uri to it, based on the return value from the stored procedure.
         # Yes, now would be a good time check out the procedure.
-        uri = 'https://'+settings.APP_HOST+':'+str(settings.APP_PORT)
+        uri = 'https://'+settings.APP_HOST
+        if(settings.APP_HOST != tyeshutty.tk):
+            uri = uri +':'+str(settings.APP_PORT)
         uri = uri+str(request.url_rule)+'/'+email
         return make_response(jsonify( { "uri" : uri } ), 201) # successful resource creation

@@ -98,7 +98,7 @@ class Folders(Resource):
             folder_id = cursor.fetchone()
             dbConnection.commit() # database was modified, commit the changes
         except Exception as e:
-            print(e)
+            print(str(e))
             return make_response(jsonify({'status': 'no such owned parent folder'}), 400)
         except:
             abort(500) # Nondescript server error
@@ -107,7 +107,9 @@ class Folders(Resource):
             dbConnection.close()
         print('folder_id=',folder_id)
         
-        uri = 'https://'+settings.APP_HOST+':'+str(settings.APP_PORT)
+        uri = 'https://'+settings.APP_HOST
+        if(settings.APP_HOST != tyeshutty.tk):
+            uri = uri +':'+str(settings.APP_PORT)
         uri = uri+'/users/'+email+'/'+str(folder_id['LAST_INSERT_ID()'])
         return make_response(jsonify( { "uri" : uri } ), 201) # successful resource creation
 

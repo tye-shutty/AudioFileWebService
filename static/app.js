@@ -5,7 +5,7 @@ var app = new Vue({
 
   //------- global data --------
   data: {
-    serviceURL: "https://cs3103.cs.unb.ca:8027",
+    serviceURL: "/audio",
     //"", //"http://ec2-18-218-32-161.us-east-2.compute.amazonaws.com", //"https://cs3103.cs.unb.ca:5045",
     authenticated: false,
     email: "",
