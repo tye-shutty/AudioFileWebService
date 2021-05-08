@@ -1,4 +1,4 @@
-# PYTHONUNBUFFERED=TRUE 
+PYTHONUNBUFFERED = True 
 #works, but causes crash, e.g.:
 # [2021-05-06 19:33:13 +0000] [32701] [INFO] Starting gunicorn 20.1.0
 # [2021-05-06 19:33:13 +0000] [32701] [DEBUG] Arbiter booted

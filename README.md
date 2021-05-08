@@ -20,11 +20,26 @@ Please don't worry about us storing some passwords on github, this site is not b
 View errors on server: 
 systemctl status Audio
 journalctl -u Audio.service
-
- --error-logfile /var/log/gunicorn/audio_error.log --access-logfile /var/log/gunicorn/access.log
-sudo chown azureuser /var/log/gunicorn/*.log
 <!-- https://mattsegal.dev/django-gunicorn-nginx-logging.html -->
-/var/log/nginx/error.log
-/var/log/nginx/access.log
+vim /home/azureuser/Audio/audio_error.log
+vim /home/azureuser/Audio/access.log
 tail -n 5
 or less, shift-g to go to end
+
+Git help:
+git filter-branch --tree-filter 'rm -f settings.py' -- --all
+git push origin media:tyeshutty
+
+increase server request size:
+https://serverfault.com/questions/814767/413-request-entity-too-large-in-nginx-with-client-max-body-size-set
+sudo vim /etc/nginx/nginx.conf
+client_max_body_size 10M; (in http section)
+sudo service nginx restart
+
+these settings may be helpful in the future:
+https://stackoverflow.com/questions/38873780/nginx-returns-internal-server-error-when-uploading-large-files-several-gb
+    client_body_timeout 300s;
+
+    client_body_in_file_only clean;
+    client_body_buffer_size 16K;
+    client_body_temp_path /home/nginx/client_body_temp;

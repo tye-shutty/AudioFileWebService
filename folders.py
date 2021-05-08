@@ -108,7 +108,7 @@ class Folders(Resource):
         print('folder_id=',folder_id)
         
         uri = 'https://'+settings.APP_HOST
-        if(settings.APP_HOST != tyeshutty.tk):
+        if(settings.APP_HOST != 'tyeshutty.tk'):
             uri = uri +':'+str(settings.APP_PORT)
         uri = uri+'/users/'+email+'/'+str(folder_id['LAST_INSERT_ID()'])
         return make_response(jsonify( { "uri" : uri } ), 201) # successful resource creation

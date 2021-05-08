@@ -7,9 +7,9 @@ User=azureuser
 Group=www-data
 WorkingDirectory=/home/azureuser/Audio
 Environment="PATH=/home/azureuser/Audio/Audioenv/bin"
-ExecStart=/home/azureuser/Audio/Audioenv/bin/gunicorn --timeout 15 --workers 3 \
---error-logfile /var/log/gunicorn/audio_error.log \
---access-logfile /var/log/gunicorn/access.log \
+ExecStart=/home/azureuser/Audio/Audioenv/bin/gunicorn --timeout 60 --workers 3 \
+--error-logfile /home/azureuser/Audio/audio_error.log \
+--access-logfile /home/azureuser/Audio/access.log \
 --capture-output --log-level debug --enable-stdio-inheritance\
 --bind unix:Audio.sock -m 007 app:app\
 -c /home/azureuser/Audio/gunicorn.conf.py

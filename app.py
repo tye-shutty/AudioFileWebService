@@ -48,6 +48,11 @@ class Root(Resource):
 		# return 'init'
 		return app.send_static_file('index.html')
 
+class Info(Resource):
+	def get(self):
+		return send_file(filename_or_fp=settings.STATIC_FOLDER+'/openapi/index.html')
+		# return app.send_static_file('openapi/index.html')
+
 # class Test(Resource):
 # 	def get(self):
 # 		return 'hi=' + session.get('test', 'no test')
@@ -65,8 +70,9 @@ from folder import Folder
 from files import Files
 from file import File
 api = Api(app)
-root = '/audio'
+root = '/audio' #'/Audīsne mē?'
 api.add_resource(Root,root)
+api.add_resource(Info,root+'/info')
 # api.add_resource(Test,root+'/test')
 api.add_resource(SignIn, root+'/signin')
 api.add_resource(Users, root+'/users')

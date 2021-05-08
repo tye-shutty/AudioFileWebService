@@ -1,10 +1,19 @@
 
 mkdir ../Audio
-cp Audio.service build.sh *.py ../Audio
-cp -r db static ../Audio
-scp -i ../ChexyAIHost_key.pem -r ../Audio azureuser@52.138.40.34:~
+
+cp Audio.service build.sh *.py *.log ../Audio
+
+mkdir ../Audio/static
+mkdir ../Audio/static/uploads
+mkdir ../Audio/static/openapi
+cp static/app.js static/index.html static/schools.css ../Audio/static
+cp static/openapi/index.html ../Audio/static/openapi
+
+cp -r db ../Audio
+
+scp -i ../ChexyAIHost_key.pem -r ../Audio azureuser@52.138.36.161:~
 rm -rf ../Audio
-ssh -o ServerAliveInterval=100000000 -i ../ChexyAIHost_key.pem azureuser@52.138.40.34
+ssh -o ServerAliveInterval=100000000 -i ../ChexyAIHost_key.pem azureuser@52.138.36.161
 
 # then on server: cd Audio
 # chmod +x build.sh deploy.sh http_certification.sh app.py

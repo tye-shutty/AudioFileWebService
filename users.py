@@ -57,6 +57,7 @@ class Users(Resource):
     #email must match unb email to be able to access restricted resources
     # curl -i -H "Content-Type: application/json" -X POST -d '{"email": "tshutty@unb.ca"}' -c cookie-jar -b cookie-jar -k https://cs3103.cs.unb.ca:5045/users
     def post(self):
+        print("posting a new user")
         if(settings.APP_HOST == '127.0.0.1'):
         #     with open('session.json') as f:
         #         session = json.load(f)
@@ -64,11 +65,11 @@ class Users(Resource):
         else:
             from flask import session
         if (not request.json or not 'email' in request.json 
-        or (not 'password' in request.json and settings.APP_HOST != 'cs3103.unb.ca')):
+        or (not 'password' in request.json and settings.APP_HOST != 'cs3103.cs.unb.ca')):
             return make_response(jsonify({'status': 'no request data'}), 400)
 
         email = request.json['email']
-        password = request.json['password'] if settings.APP_HOST != 'cs3103.unb.ca' else ''
+        password = request.json['password'] if settings.APP_HOST != 'cs3103.cs.unb.ca' else ''
         print('len=',len(email))
         if len(email) < 1 or len(email) > 200:
             return make_response(jsonify({'status': 'email must be > 1 < 200 char'}), 400)
@@ -95,7 +96,7 @@ class Users(Resource):
             cursor.close()
             dbConnection.close()
         uri = 'https://'+settings.APP_HOST
-        if(settings.APP_HOST != tyeshutty.tk):
+        if(settings.APP_HOST != 'tyeshutty.tk'):
             uri = uri +':'+str(settings.APP_PORT)
         uri = uri+str(request.url_rule)+'/'+email
         return make_response(jsonify( { "uri" : uri } ), 201)

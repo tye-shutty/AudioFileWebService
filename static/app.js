@@ -5,6 +5,7 @@ var app = new Vue({
 
   //------- global data --------
   data: {
+    domain: 'tyeshutty.tk',
     serviceURL: "/audio",
     //"", //"http://ec2-18-218-32-161.us-east-2.compute.amazonaws.com", //"https://cs3103.cs.unb.ca:5045",
     authenticated: false,
@@ -52,79 +53,109 @@ var app = new Vue({
     toggle_users: false,
     add_file_complete: true,
     add_folder_complete: true,
-    target_input_valid: false
+    target_input_valid: false,
+    signup_success: false
   },
   methods: {
     login() {
       v=this;
-      if (this.input.username != "" && this.input.password != "") {
+      if(this.domain == 'cs3103.cs.unb.ca'){
+        if (this.input.username != "" && this.input.password != "") {
+          axios
+          .post(this.serviceURL+"/signin", {
+              "username": this.input.username,
+              "password": this.input.password
+          })
+          .then(response => {
+              if (response.data.status == "success") {
+                this.authenticated = true;
+                // console.log(response.status);
+                axios 
+                .post(this.serviceURL+"/users", {
+                  "email": this.input.username + "@unb.ca"
+                })
+                .then(response2 => {
+                  if (response2.status == 201) {
+                    //console.log('response=',response2);
+                    this.email = this.input.username + "@unb.ca";
+                    this.target_user = this.email;
+  
+                  axios 
+                  .get(this.serviceURL+"/users/"+this.email)
+                  .then(response3 => {
+                    console.log("user data 201 =",response3.data);
+                    v.admin_status = response3.data; //.user.admin_status;
+                    this.getFolders();
+                  })
+                  .catch(e => {
+                    console.log(e);
+                  });
+                    }
+                })
+                .catch(e => {
+                  // if(!(response in e)){
+                  //   console.log("no response in 409!");
+                  // }
+                  if((e.response)){
+                    console.log("response in 409!")
+                    console.log(e.response, e.response.data);
+                  }
+                  console.log('409 err=',e);
+                  if (e.response && e.response.status == 409) {
+                    console.log("things work",e.response, e.response.data, e.response.status);
+                    this.email = this.input.username + "@unb.ca";
+                    this.target_user = this.email;
+  
+                    axios 
+                    .get(this.serviceURL+"/users/"+this.email)
+                    .then(response4 => {
+                      console.log("user data 409=",response4.data);
+                      console.log("user data.user 409=",response4.data.user.admin_status);
+                      v.admin_status = response4.data; //.user.admin_status;
+                      this.getFolders();
+                    })
+                    .catch(e => {
+                      //console.log(e);
+                    });
+                  }
+                });
+              }
+          })
+          .catch(e => {
+              alert("The username or password was incorrect, try again");
+              this.input.password = "";
+              console.log(e.response);
+          });
+        } else {
+          alert("A username and password must be present");
+        }
+      }
+      else{ //not using UNB system
         axios
         .post(this.serviceURL+"/signin", {
             "username": this.input.username,
             "password": this.input.password
         })
         .then(response => {
-            if (response.data.status == "success") {
-              this.authenticated = true;
-              // console.log(response.status);
-              axios 
-              .post(this.serviceURL+"/users", {
-                "email": this.input.username + "@unb.ca"
-              })
-              .then(response2 => {
-                if (response2.status == 201) {
-                  //console.log('response=',response2);
-                  this.email = this.input.username + "@unb.ca";
-                  this.target_user = this.email;
-
-                axios 
-                .get(this.serviceURL+"/users/"+this.email)
-                .then(response3 => {
-                  console.log("user data 201 =",response3.data);
-                  v.admin_status = response3.data; //.user.admin_status;
-                  this.getFolders();
-                })
-                .catch(e => {
-                  console.log(e);
-                });
-                  }
-              })
-              .catch(e => {
-                // if(!(response in e)){
-                //   console.log("no response in 409!");
-                // }
-                if((e.response)){
-                  console.log("response in 409!")
-                  console.log(e.response, e.response.data);
-                }
-                console.log('409 err=',e);
-                if (e.response && e.response.status == 409) {
-                  console.log("things work",e.response, e.response.data, e.response.status);
-                  this.email = this.input.username + "@unb.ca";
-                  this.target_user = this.email;
-
-                  axios 
-                  .get(this.serviceURL+"/users/"+this.email)
-                  .then(response4 => {
-                    console.log("user data 409=",response4.data);
-                    console.log("user data.user 409=",response4.data.user.admin_status);
-                    v.admin_status = response4.data; //.user.admin_status;
-                    this.getFolders();
-                  })
-                  .catch(e => {
-                    //console.log(e);
-                  });
-                }
-              });
-            }
+          if (response.data.status == "success") {
+            this.authenticated = true;
+            this.email = this.input.username;
+            this.target_user = this.email;
+            axios 
+            .get(this.serviceURL+"/users/"+this.email)
+            .then(response3 => {
+              console.log("user data 201 =",response3.data);
+              v.admin_status = response3.data; //.user.admin_status;
+              this.getFolders();
+            })
+            .catch(e => {
+              console.log(e);
+            });
+          }
         })
         .catch(e => {
-            alert("The username or password was incorrect, try again");
-            this.input.password = "";
-            console.log(e.response);
+          console.log(e);
         });
-      } else {
-        alert("A username and password must be present");
       }
     },
     logout() {
@@ -643,6 +674,18 @@ var app = new Vue({
     } else{
       return "";
     }
+  },
+  signup(){
+    axios 
+    .post(this.serviceURL+"/users", {
+      "email": this.input.username,
+      "password": this.input.password
+    })
+    .then(response2 => {
+      if (response2.status == 201) {
+        this.signup_success = true;
+      }
+    });
   }
 
 

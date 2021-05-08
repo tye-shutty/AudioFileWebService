@@ -1,11 +1,11 @@
 openapi: 3.0.0
 info:
-  title: AudioFileWebService
-  description: The file should include all elements that are necessary for the project, including Endpoint(s), HTTP commands, queries, requests and responses, including schemas and examples. indicate security when appropriate.
-  version: '0.1.0'
+  title: Audīsne mē?
+  description: Create an account, create folders, upload files, play files, modify files, and download files.
+  version: '0.2.0'
 
 servers: 
- - url: https://cs3103.cs.unb.ca/tshutty/project_api
+ - url: https://tyeshutty.tk/audio
 
 tags:
   - name: admins
@@ -15,14 +15,30 @@ tags:
   - name: logged out users
     description: Operations available to users not logged in
     
-#password creation, management, and authentication will be handled by UNB's server
+#password creation, management, and authentication will be handled by UNB's server if the app is run from a UNB domain
+#otherwise, it is handled in the app.
 #email is the user ID. If a path has {email} in it, then only that means each user can only access the resources associated with them, not other users. Except admins, which can use all {email} path possibilities.
 #cd ~/codebase/swagger-editor-master
 #sudo npm run dev
 #open http://0.0.0.0:3200
 
-
 paths:
+  /:
+    get:
+      tags:
+        - logged out users 
+      summary: Returns a single page application with much of the API functionality built in.
+      responses:
+        '200':
+          description: HTML and associated assets returned
+  /info:
+    get:
+      tags:
+        - logged out users 
+      summary: Returns this documentation.
+      responses:
+        '200':
+          description: HTML and associated assets returned
   /users:
     post:
       tags:
@@ -33,7 +49,7 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/email'
+              $ref: '#/components/schemas/credentials'
       responses:
         '201':
           description: Created
@@ -522,7 +538,7 @@ components:
               type: number
             email:
               type: string
-      example: {"users": [{"email": "lucky" }, {"email": "p2@domain.com"}]}
+      example: {"email": "lucky", "admin_status": 1 }
     boolean:
       type: boolean
     modified_folder_info:
@@ -638,14 +654,10 @@ components:
     credentials:
       type: object
       properties:
-        username:
+        email:
           type: string
         password:
           type: string
       example:
         username: tshutty
         password: gorilla
-            
-  
-        
-      

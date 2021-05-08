@@ -131,7 +131,7 @@ class Files(Resource):
             cursor.close()
             dbConnection.close()
         uri = 'https://'+settings.APP_HOST
-        if(settings.APP_HOST != tyeshutty.tk):
+        if(settings.APP_HOST != 'tyeshutty.tk'):
             uri = uri +':'+str(settings.APP_PORT)
         uri = uri+'/users/'+email+'/'+str(file_id['LAST_INSERT_ID()'])
 

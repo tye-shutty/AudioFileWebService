@@ -45,7 +45,7 @@ class User(Resource):
             dbConnection.close()
         if row is None:
             return make_response(jsonify({'status': 'no user'}), 404)
-        return make_response(jsonify({'user': row}), 200) # turn set into json and return it
+        return make_response(jsonify({'user': {'email': row['email'], 'admin_status': row['admin_status']}}), 200) # turn set into json and return it
     #Change email
     # curl -i -H "Content-Type: application/json" -X PATCH -d '{"email":"dum@poopie"}' -c cookie-jar -b cookie-jar -k https://cs3103.cs.unb.ca:5045/users/tshutty@unb.ca
     #Change email back:
