@@ -168,9 +168,9 @@ class Folder(Resource):
                 cursor = dbConnection.cursor()
                 cursor.callproc(sql, [folder])
                 dbConnection.commit() #NEEDED for updates and inserts
-            except pymysql.err.InternalError as e:
+            except Exception as e:
                 print(e)
-                return make_response(jsonify({'status':'folder not deleted'}), 400)
+                return make_response(jsonify({'status':'folder not deleted.' + str(e)}), 400)
             except:
                 abort(500) # Nondescript server error
             finally:

@@ -70,7 +70,7 @@
       </div>
       <div v-if="authenticated">
         <button v-if="show_folder != 0 || searched===true || target_user !== email" type="button" class="btn"  
-        v-on:click="searched=false;search='';getFolders();show_folder=0;pauseAll();">
+        v-on:click="searched=false;search='';getFolders();show_folder=0;show_folder_description='';pauseAll();">
         Return to Home Directory</button>
         <div v-if="admin_status.user.admin_status===1 && show_folder===0 && searched===false">
           <h2>Select a User:</h2>
@@ -118,7 +118,7 @@
                       <div> <!--class="btn-group-xs"-->
                         <button class="utilityBtn green" 
                         v-on:click="show_folder=folder.folder_id;show_folder_name=folder.folder_name;
-                        show_folder_description=folder.folder_description;getFiles()">
+                        show_folder_description=folder.folder_description;getFiles();pauseAll();">
                         👁 View</button>
                         <button class="utilityBtn green" 
                         v-on:click="edit_folder=folder.folder_id;set_folder=!set_folder">

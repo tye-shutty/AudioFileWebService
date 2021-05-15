@@ -1,7 +1,8 @@
 
 mkdir ../Audio
 
-cp Audio.service build.sh *.py *.log ../Audio
+cp Audio.service build.sh app.py authorize.py file.py files.py folder.py folders.py gunicorn.conf.py \
+helpers.py signin.py user.py users.py *.log ../Audio
 
 mkdir ../Audio/static
 mkdir ../Audio/static/uploads

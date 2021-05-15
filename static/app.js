@@ -63,7 +63,7 @@ var app = new Vue({
         if (this.input.username != "" && this.input.password != "") {
           axios
           .post(this.serviceURL+"/signin", {
-              "username": this.input.username,
+              "email": this.input.username,
               "password": this.input.password
           })
           .then(response => {
@@ -133,7 +133,7 @@ var app = new Vue({
       else{ //not using UNB system
         axios
         .post(this.serviceURL+"/signin", {
-            "username": this.input.username,
+            "email": this.input.username,
             "password": this.input.password
         })
         .then(response => {
@@ -524,6 +524,12 @@ var app = new Vue({
               update_seeker(old_time, sound);
             },
             500);
+        } else if((isNaN(sound.currentTime) || isNaN(sound.duration)) ||
+        sound.currentTime/sound.duration > 0.99)
+        {
+          file.seek_percent = 0;
+          vm.paused_proposition = 'play';
+          vm.$forceUpdate();
         }
       }
       function onceRunning(){  //"loadeddata"
@@ -605,9 +611,13 @@ var app = new Vue({
       }
     },
    pauseAll(){
-     for(const sound_index in this.sound){
+    for(const sound_index in this.sound){
       this.sound[sound_index].pause();
-     }
+    }
+    for(const file in this.files){
+      file.paused_proposition = 'play';
+    }
+    show_file = null;
    },
    getUsers(){
      if(this.toggle_users===false){

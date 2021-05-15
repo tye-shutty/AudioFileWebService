@@ -44,7 +44,7 @@ class SignIn(Resource):
             else:
                 email = request_params['email'] #TODO: confirm if valid email
         except:
-            print('req=',request.json)
+            print('bad req=',request.json)
             abort(400) # bad request
 
         if 'email' in session and session['email'] == email:
@@ -144,7 +144,7 @@ class SignIn(Resource):
             print('session=', session)
         else:
             from flask import session
-        print('sid=',session['sid'],'session=',session)
+        print('session=',session)
         if 'email' in session:
             session.pop('email',None)
             session.pop('admin_status',None)
