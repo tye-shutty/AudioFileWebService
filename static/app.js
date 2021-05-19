@@ -67,17 +67,18 @@ var app = new Vue({
   methods: {
     login() {
       v=this;
-      this.signup_success = false;
-      this.signup_failure = false;
       if(v.input.username === "" || v.input.password === ""){
         v.warning = true;
         v.warning_message = "email and password must be at least 1 character long"
         return;
       }
       v.warning = false;
+      v.input.username = v.input.username.toLowerCase();
       if(v.last_signin_email == v.input.username && v.last_signin_password == v.input.password){
         return;
       }
+      this.signup_success = false;
+      this.signup_failure = false;
       v.last_signin_email = v.input.username;
       v.last_signin_password = v.input.password;
       if(v.domain == 'cs3103.cs.unb.ca'){
@@ -88,6 +89,9 @@ var app = new Vue({
         })
         .then(response => {
             if (response.data.status == "success") {
+              if(!navigator.userAgent.includes('Firefox')){
+                alert('Site will behave poorly on non-Firefox browsers');
+              }
               v.authenticated = true;
               // console.log(response.status);
               axios 
@@ -155,6 +159,11 @@ var app = new Vue({
         })
         .then(response => {
           if (response.data.status == "success") {
+            if(!navigator.userAgent.includes('Firefox')){
+              alert('Site will behave poorly on non-Firefox browsers');
+            }
+            v.last_signin_email = '';
+            v.last_signin_password = '';
             this.signin_failure = false;
             this.authenticated = true;
             this.email = this.input.username;
@@ -680,7 +689,9 @@ var app = new Vue({
   },
   deleteUser(){
     if(this.target_user != ""){
-      // console.log(id);
+      // for (const file in this.files){
+      //   axios.delete(this.serviceURL+"/users/"+this.target_user+"/files/"+file.file_id)
+      // }
       axios
       .delete(this.serviceURL+"/users/"+this.target_user)
       .then(response => {
@@ -711,6 +722,7 @@ var app = new Vue({
       return;
     }
     v.warning = false;
+    v.input.username = v.input.username.toLowerCase();
     if(v.last_signup_email == v.input.username && v.last_signup_password == v.input.password){
       return;
     }
@@ -726,6 +738,8 @@ var app = new Vue({
       if (response2.status == 201) {
         this.signup_success = true;
         this.signup_failure = false;
+        v.last_signin_email = '';
+        v.last_signin_password = '';
       }
     })
     .catch(_ => {

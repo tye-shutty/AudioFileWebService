@@ -68,7 +68,7 @@ class User(Resource):
         if not request.json or not 'email' in request.json:
             return make_response(jsonify({'status': 'no request'}), 400)
 
-        new_email = request.json['email']
+        new_email = request.json['email'].lower()
 
         dbConnection = pymysql.connect(
             host = settings.MYSQL_HOST,

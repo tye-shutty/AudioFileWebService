@@ -46,65 +46,64 @@ class SignIn(Resource):
         except:
             print('bad req=',request.json)
             abort(400) # bad request
+        #need to be able to prerun code on the front end on page reload to take advantage of this feature
+        # if 'email' in session and session['email'] == email:
+        #     response = {'status': 'success'}
+        #     responseCode = 200
+        # else:
+        try:
+            if(settings.APP_HOST == 'cs3103.cs.unb.ca'):    # temporary access to demo admin: and
+            # request_params['email'] != 'admin'
+                print('signing in with UNB')
+                ldapServer = Server(host=settings.LDAP_HOST)
+                ldapConnection = Connection(ldapServer,
+                    raise_exceptions=True,
+                    user='uid='+request_params['email']+', ou=People,ou=fcs,o=unb',
+                    password = request_params['password'])
+                ldapConnection.open()
+                ldapConnection.start_tls()
+                ldapConnection.bind()
+            else:
+                print('singin in with db')
+                dbConnection = pymysql.connect(
+                    host = settings.MYSQL_HOST,
+                    user = settings.MYSQL_USER,
+                    passwd = settings.MYSQL_PASSWD,
+                    db = settings.MYSQL_DB,
+                    charset='utf8mb4',
+                    cursorclass= pymysql.cursors.DictCursor)
 
-        if 'email' in session and session['email'] == email:
-            response = {'status': 'success'}
-            responseCode = 200
-        else:
-            try:
-                if(settings.APP_HOST == 'cs3103.cs.unb.ca'):    # temporary access to demo admin: and
-                # request_params['email'] != 'admin'
-                    print('signing in with UNB')
-                    ldapServer = Server(host=settings.LDAP_HOST)
-                    ldapConnection = Connection(ldapServer,
-                        raise_exceptions=True,
-                        user='uid='+request_params['email']+', ou=People,ou=fcs,o=unb',
-                        password = request_params['password'])
-                    ldapConnection.open()
-                    ldapConnection.start_tls()
-                    ldapConnection.bind()
-                else:
-                    print('singin in with db')
-                    dbConnection = pymysql.connect(
-                        host = settings.MYSQL_HOST,
-                        user = settings.MYSQL_USER,
-                        passwd = settings.MYSQL_PASSWD,
-                        db = settings.MYSQL_DB,
-                        charset='utf8mb4',
-                        cursorclass= pymysql.cursors.DictCursor)
-
-                    sql = 'getUser'
-                    try:
-                        cursor = dbConnection.cursor()
-                        cursor.callproc(sql, [email]) # stored procedure, arguments
-                        row = cursor.fetchone()
-                        # print('row=', row)
-                        if(row == None):
-                            return make_response(jsonify({'status': 'No account'}), 403)
-                        elif(row['pswd'] != request_params['password']):
-                            return make_response(jsonify({'status': 'Access denied'}), 403)
-                    except Exception as e:
-                        print('exception', e)
-                        traceback.print_exc()
-                        return make_response(jsonify({'status': str(e)}), 400)
-                    finally:
-                        cursor.close()
-                        dbConnection.close()
-                    print('row=', row)
+                sql = 'getUser'
+                try:
+                    cursor = dbConnection.cursor()
+                    cursor.callproc(sql, [email]) # stored procedure, arguments
+                    row = cursor.fetchone()
+                    # print('row=', row)
+                    if(row == None):
+                        return make_response(jsonify({'status': 'No account'}), 403)
+                    elif(row['pswd'] != request_params['password']):
+                        return make_response(jsonify({'status': 'Access denied'}), 403)
+                except Exception as e:
+                    print('exception', e)
+                    traceback.print_exc()
+                    return make_response(jsonify({'status': str(e)}), 400)
+                finally:
+                    cursor.close()
+                    dbConnection.close()
+                print('row=', row)
                     
-
-                # At this point we have sucessfully authenticated.
-                session['email'] = email
-                print('sess email=',session['email'])
-                response = {'status': 'success' }
-                responseCode = 201
-            except LDAPException:
-                response = {'status': 'Access denied'}
-                responseCode = 403
-            finally:
-                if(settings.APP_HOST == 'cs3103.cs.unb.ca' and
-                request_params['email'] != 'admin'):    # temporary access to demo admin
-                    ldapConnection.unbind()
+            # At this point we have sucessfully authenticated.
+            session['email'] = email
+            print('sess email=',session['email'])
+            response = {'status': 'success' }
+            responseCode = 201
+        except LDAPException:
+            response = {'status': 'Access denied'}
+            responseCode = 403
+        finally:
+            if(settings.APP_HOST == 'cs3103.cs.unb.ca' and
+            request_params['email'] != 'admin'):    # temporary access to demo admin
+                ldapConnection.unbind()
         resp = make_response(jsonify(response), responseCode)
         # resp.set_cookie('cookie_key', value="cookie_value", domain='127.0.0.1')
         # if(settings.APP_HOST == '127.0.0.1'):
@@ -149,7 +148,7 @@ class SignIn(Resource):
             session.pop('email',None)
             session.pop('admin_status',None)
         print('del sess=',session)
-        response = {'status': 'success'}
+        response = {'status': 'success, session='+str(session)}
         responseCode = 200
 
         # if(settings.APP_HOST == '127.0.0.1'):

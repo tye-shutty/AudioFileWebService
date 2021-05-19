@@ -68,7 +68,7 @@ class Users(Resource):
         or (not 'password' in request.json and settings.APP_HOST != 'cs3103.cs.unb.ca')):
             return make_response(jsonify({'status': 'no request data'}), 400)
 
-        email = request.json['email']
+        email = request.json['email'].lower()
         password = request.json['password'] if settings.APP_HOST != 'cs3103.cs.unb.ca' else ''
         print('len=',len(email))
         if len(email) < 1 or len(email) > 200:

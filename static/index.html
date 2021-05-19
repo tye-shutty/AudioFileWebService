@@ -68,7 +68,7 @@
         v-on:click="signup()">Signup</button>
         <p v-if="signup_success===true">Signup successful, please log in</p>
         <p v-if="signup_failure===true">Signup unsuccessful, email already taken, please try a different email</p>
-        <p v-if="signin_failure===true">No account found, please sign up first</p>
+        <p v-if="signin_failure===true">Email or password is incorrect</p>
         <p v-if="warning===true">{{warning_message}}</p>
       </div>
       <div v-if="authenticated">
